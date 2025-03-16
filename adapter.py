@@ -1,5 +1,6 @@
 import time
 import can
+import json
 
 
 class Adapter:
@@ -30,7 +31,7 @@ class Adapter:
         else:
             print("Bus is not connected")
 
-    def listen(self, listen_time: float) -> list:
+    def listen(self, listen_time: float, output_file: str):
         if self.bus:
             end_time = time.time() + listen_time
             messages = []
@@ -39,8 +40,13 @@ class Adapter:
                 if message:
                     print(
                         f"Received data from CAN bus on channel {self.channel}: {message.data}")
-                    messages.append(message)
-            return messages
+                    messages.append({
+                        'timestamp': message.timestamp,
+                        'arbitration_id': message.arbitration_id,
+                        'data': list(message.data)
+                    })
+            with open(output_file, 'w') as f:
+                json.dump(messages, f, indent=4)
+            print(f"Recorded data saved to {output_file}")
         else:
             print("Bus is not connected")
-            return []
