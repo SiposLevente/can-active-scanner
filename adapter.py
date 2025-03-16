@@ -2,7 +2,6 @@ import time
 import can
 import json
 
-
 class Adapter:
     def __init__(self, _channel: str, _bustype: str = 'socketcan', _bitrate: int = 500000):
         self.channel = _channel
