@@ -1,38 +1,99 @@
 import os
 import time
-from adapter import Adapter
+import can
+import cantools
+import argparse
 
-def listen_for_can_data(adapter, timeout=10):
-    print("Listening for CAN data...")
-    end_time = time.time() + timeout
-    messages = []
-    while time.time() < end_time:
-        message = adapter.bus.recv(timeout)
-        if message:
-            messages.append(message)
-            print(f"Received message: {message}")
-    return messages
 
-def match_against_databases(messages, databases_path):
-    print("Matching against databases...")
-    return False
+class CANAdapter:
+    def __init__(self, interface: str, channel: str, bitrate: int, dbc_file: str):
+        self.interface = interface
+        self.channel = channel
+        self.bitrate = bitrate
+        self.dbc_file = dbc_file
+        self.messages = []
 
-def reverse_engineer_can_data(messages):
-    print("Reverse engineering CAN data...")
-    for message in messages:
-        print(f"Message: {message}")
+        # Load the DBC file
+        self.dbc = cantools.database.load_file(dbc_file)
+
+        # Initialize CAN bus
+        self.bus = can.interface.Bus(
+            bustype=self.interface, channel=self.channel, bitrate=self.bitrate)
+
+    def listen(self, duration: int):
+        print(f"Listening on {self.channel} for {duration} seconds...")
+        start_time = time.time()
+
+        while time.time() - start_time < duration:
+            message = self.bus.recv(timeout=1)
+            if message:
+                self.messages.append(message)
+                print(f"Received message: {message}")
+
+    def decode_messages(self):
+        """
+        Decode the collected CAN messages using the DBC file.
+        """
+        decoded_messages = []
+        for message in self.messages:
+            try:
+                decoded = self.dbc.decode_message(
+                    message.arbitration_id, message.data)
+                decoded_messages.append((message.arbitration_id, decoded))
+                print(
+                    f"Decoded message: ID={message.arbitration_id}, Data={decoded}")
+            except Exception as e:
+                print(
+                    f"Failed to decode message ID={message.arbitration_id}: {e}")
+        return decoded_messages
+
+    def save_messages(self, output_file: str, decoded: bool = True):
+        """
+        Save the collected CAN messages to a file.
+
+        :param output_file: The file to save the messages to
+        :param decoded: Whether to save decoded messages (default: True)
+        """
+        with open(output_file, 'w') as f:
+            if decoded:
+                decoded_messages = self.decode_messages()
+                for arbitration_id, data in decoded_messages:
+                    f.write(f"ID={arbitration_id}, Data={data}\n")
+            else:
+                for message in self.messages:
+                    f.write(f"{message}\n")
+        print(f"Messages saved to {output_file}")
+
+    def send_message(self, arbitration_id: int, data: bytes):
+        """
+        Send a CAN message.
+
+        :param arbitration_id: The arbitration ID of the CAN message
+        :param data: The data payload of the CAN message (as bytes)
+        """
+        message = can.Message(arbitration_id=arbitration_id,
+                              data=data, is_extended_id=False)
+        try:
+            self.bus.send(message)
+            print(f"Sent message: ID={arbitration_id}, Data={data}")
+        except can.CanError as e:
+            print(f"Failed to send message: {e}")
+
 
 if __name__ == "__main__":
-    adapter = Adapter(channel='vcan0')
-    adapter.connect()
+    parser = argparse.ArgumentParser(description="CAN Adapter")
+    parser.add_argument("--dbc-file", required=True,
+                        help="Path to the DBC file")
+    args = parser.parse_args()
 
-    messages = listen_for_can_data(adapter)
+    # Example usage
+    adapter = CANAdapter(
+        interface="socketcan",  # Change as per your setup
+        channel="vcan0",        # Change as per your setup
+        bitrate=500000,         # Change as per your setup
+        dbc_file=args.dbc_file
+    )
 
-    project_directory = os.path.dirname(os.path.abspath(__file__))
-    databases_path = os.path.join(project_directory, 'databases')
-
-    if not match_against_databases(messages, databases_path):
-        # If no match is found, reverse engineer the data
-        reverse_engineer_can_data(messages)
-
-    adapter.disconnect()
+    adapter.listen(duration=10)  # Listen for 10 seconds
+    decoded = adapter.decode_messages()
+    adapter.save_messages("collected_messages.txt")
