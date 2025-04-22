@@ -6,15 +6,21 @@ import argparse
 
 
 class CANAdapter:
-    def __init__(self, interface: str, channel: str, bitrate: int, dbc_file: str):
+    def __init__(self, interface: str, channel: str, bitrate: int, dbc_file: str = None):
         self.interface = interface
         self.channel = channel
         self.bitrate = bitrate
         self.dbc_file = dbc_file
         self.messages = []
 
-        # Load the DBC file
-        self.dbc = cantools.database.load_file(dbc_file)
+        # Load the DBC file if provided
+        self.dbc = None
+        if self.dbc_file:
+            try:
+                self.dbc = cantools.database.load_file(dbc_file)
+                print(f"Loaded DBC file: {dbc_file}")
+            except Exception as e:
+                print(f"Failed to load DBC file: {e}")
 
         # Initialize CAN bus
         self.bus = can.interface.Bus(
@@ -34,6 +40,10 @@ class CANAdapter:
         """
         Decode the collected CAN messages using the DBC file.
         """
+        if not self.dbc:
+            print("No DBC file provided. Skipping decoding.")
+            return []
+
         decoded_messages = []
         for message in self.messages:
             try:
@@ -48,14 +58,8 @@ class CANAdapter:
         return decoded_messages
 
     def save_messages(self, output_file: str, decoded: bool = True):
-        """
-        Save the collected CAN messages to a file.
-
-        :param output_file: The file to save the messages to
-        :param decoded: Whether to save decoded messages (default: True)
-        """
         with open(output_file, 'w') as f:
-            if decoded:
+            if decoded and self.dbc:
                 decoded_messages = self.decode_messages()
                 for arbitration_id, data in decoded_messages:
                     f.write(f"ID={arbitration_id}, Data={data}\n")
@@ -82,7 +86,7 @@ class CANAdapter:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CAN Adapter")
-    parser.add_argument("--dbc-file", required=True,
+    parser.add_argument("--dbc-file",
                         help="Path to the DBC file")
     args = parser.parse_args()
 
