@@ -4,6 +4,9 @@ import can
 import cantools
 import argparse
 
+known_uds_services = {0x10, 0x11, 0x27, 0x28,
+                      0x22, 0x2E, 0x2F, 0x31, 0x34, 0x36, 0x3E, 0x85}
+
 
 class CANAdapter:
     def __init__(self, interface: str, channel: str, bitrate: int, dbc_file: str = None):
@@ -83,6 +86,19 @@ class CANAdapter:
         except can.CanError as e:
             print(f"Failed to send message: {e}")
 
+    def find_uds_service_ids(self):
+        """
+        Search for UDS service IDs in the recorded messages.
+
+        :return: A list of arbitration IDs that match known UDS services.
+        """
+        uds_service_ids = []
+        for message in self.messages:
+            if message.arbitration_id in known_uds_services:
+                uds_service_ids.append(message.arbitration_id)
+                print(f"Found UDS service ID: {message.arbitration_id}")
+        return uds_service_ids
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CAN Adapter")
@@ -92,12 +108,16 @@ if __name__ == "__main__":
 
     # Example usage
     adapter = CANAdapter(
-        interface="socketcan",  # Change as per your setup
-        channel="vcan0",        # Change as per your setup
-        bitrate=500000,         # Change as per your setup
+        interface="socketcan",
+        channel="vcan0",
+        bitrate=500000,
         dbc_file=args.dbc_file
     )
 
     adapter.listen(duration=10)  # Listen for 10 seconds
     decoded = adapter.decode_messages()
     adapter.save_messages("collected_messages.txt")
+
+    # Search for the ID of UDS services
+    uds_service_ids = adapter.find_uds_service_ids()
+    print(f"UDS Service IDs found: {uds_service_ids}")
