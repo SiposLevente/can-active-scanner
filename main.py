@@ -4,9 +4,6 @@ import can
 import cantools
 import argparse
 
-known_uds_services = {0x10, 0x11, 0x27, 0x28,
-                      0x22, 0x2E, 0x2F, 0x31, 0x34, 0x36, 0x3E, 0x85}
-
 
 class CANAdapter:
     def __init__(self, interface: str, channel: str, bitrate: int, dbc_file: str = None):
@@ -87,17 +84,28 @@ class CANAdapter:
         except can.CanError as e:
             print(f"Failed to send message: {e}")
 
+    # search for the id of UDS services in the range of 0x000 - 0x7FF
     def find_uds_service_ids(self):
         """
-        Search for UDS service IDs in the recorded messages.
-
-        :return: A list of arbitration IDs that match known UDS services.
+        Search for the ID of UDS services in the range of 0x000 - 0x7FF
+        and return a list of service IDs.
         """
         uds_service_ids = []
+
+        # Iterate through the collected CAN messages
         for message in self.messages:
-            if message.arbitration_id in known_uds_services:
-                uds_service_ids.append(message.arbitration_id)
-                print(f"Found UDS service ID: {message.arbitration_id}")
+            # UDS messages generally start with a service byte, and in the case of request messages,
+            # this byte is usually at the beginning of the data payload.
+            if len(message.data) > 0:
+                service_byte = message.data[0]
+
+                # Check for UDS service IDs, UDS service request IDs typically range from 0x10 to 0x3F
+                # For example, 0x10 (Diagnostic Session Control), 0x22 (Read Data By Identifier), etc.
+                if 0x10 <= service_byte <= 0x3F:
+                    if service_byte not in uds_service_ids:
+                        uds_service_ids.append(service_byte)
+                        print(f"Found UDS service ID: {service_byte:#04x}")
+
         return uds_service_ids
 
 
