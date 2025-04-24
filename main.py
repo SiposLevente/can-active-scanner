@@ -29,7 +29,7 @@ class CANAdapter:
         self.bus = can.interface.Bus(
             bustype=self.interface, channel=self.channel, bitrate=self.bitrate)
 
-    def listen(self, duration: int):
+    def listen(self, duration: int, print_messages: bool = False):
         print(f"Listening on {self.channel} for {duration} seconds...")
         start_time = time.time()
 
@@ -37,7 +37,8 @@ class CANAdapter:
             message = self.bus.recv(timeout=1)
             if message:
                 self.messages.append(message)
-                print(f"Received message: {message}")
+                if print_messages:
+                    print(f"Received message: {message}")
 
     def decode_messages(self):
         """
