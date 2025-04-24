@@ -115,8 +115,6 @@ if __name__ == "__main__":
     )
 
     adapter.listen(duration=10)  # Listen for 10 seconds
-    decoded = adapter.decode_messages()
-    adapter.save_messages("collected_messages.txt")
 
     # Search for the ID of UDS services
     uds_service_ids = adapter.find_uds_service_ids()
