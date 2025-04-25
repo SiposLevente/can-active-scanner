@@ -110,7 +110,7 @@ class CANAdapter:
                 self.send_message(uds_id, session_request)
                 time.sleep(0.1)  # slight delay to allow session switch
 
-                for service in range(0x10, 0x40):  # typical range for UDS
+                for service in range(0x00, 0xff):  # typical range for UDS
                     request = bytes([service])
                     self.send_message(uds_id, request)
                     response = self.bus.recv(timeout=0.5)
