@@ -53,7 +53,7 @@ class CANAdapter:
             print(f"CAN send error on ID {hex(arbitration_id)}: {e}")
         return None
 
-    def find_uds_service_ids(self, id_range=range(0x700, 0x7A0)):
+    def find_uds_service_ids(self, id_range=range(0x000, 0x7FF)):
         print("Probing for UDS responders...")
         for arb_id in id_range:
             response = self.send_and_receive(
@@ -79,6 +79,7 @@ class CANAdapter:
         for arb_id in self.uds_ids:
             vin_request = b'\x22\xF1\x90'  # Read Data By Identifier (VIN)
             response = self.send_and_receive(arb_id, vin_request)
+            print(response)
             if response and response.data[0] == 0x62:
                 vin = ''.join(chr(b) for b in response.data[3:])
                 print(f"VIN from {hex(arb_id)}: {vin}")
