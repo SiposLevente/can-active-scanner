@@ -2,6 +2,10 @@ import time
 import can
 import cantools
 import argparse
+# Make sure to replace this with actual module imports
+from utils.can_actions import auto_blacklist
+from utils.iso14229_1 import Services
+from utils.iso15765_2 import IsoTp
 
 
 class CANAdapter:
@@ -39,52 +43,128 @@ class CANAdapter:
                     print(f"Received message: {message}")
 
     def send_and_receive(self, arbitration_id: int, data: bytes, timeout: float = 1.0):
-        message = can.Message(arbitration_id=arbitration_id,
-                              data=data,
-                              is_extended_id=False)
+        """ Sends a CAN message and waits for a response. """
         try:
+            message = can.Message(
+                arbitration_id=arbitration_id, data=data, is_extended_id=False)
             self.bus.send(message)
-            start = time.time()
-            while time.time() - start < timeout:
-                response = self.bus.recv(timeout=0.1)
-                if response and response.arbitration_id == arbitration_id + 8:
-                    return response
+            print(
+                f"Sent message: {hex(arbitration_id)} with data {data.hex()}")
+
+            # Wait for response within timeout period
+            response = self.bus.recv(timeout=timeout)
+            if response:
+                print(
+                    f"Received response: {response.data.hex()} from {hex(response.arbitration_id)}")
+                return response
+            else:
+                print(f"No response received within {timeout} seconds.")
+                return None
         except can.CanError as e:
-            print(f"CAN send error on ID {hex(arbitration_id)}: {e}")
-        return None
+            print(f"Error sending message: {e}")
+            return None
 
-    def find_uds_service_ids(self, id_range=range(0x000, 0x7FF)):
-        print("Probing for UDS responders...")
-        for arb_id in id_range:
-            response = self.send_and_receive(
-                arb_id, b'\x10\x01')  # Default diagnostic session
-            if response and response.data[0] == 0x50:
-                print(f"UDS response from ID {hex(arb_id)}")
-                self.uds_ids.add(arb_id)
+    def find_uds_service_ids(self, min_id=None, max_id=None, blacklist_args=None,
+                             auto_blacklist_duration=None, delay=0.5, verify=True, print_results=True):
+        """
+        Scans for diagnostics support by brute-forcing session control
+        messages to different arbitration IDs.
 
-    def discover_sessions(self):
-        print("Discovering supported sessions...")
-        for arb_id in self.uds_ids:
-            response = self.send_and_receive(
-                arb_id, b'\x10\x03')  # Extended session request
-            if response and response.data[0] == 0x50:
-                print(f"{hex(arb_id)} supports extended session")
-                self.sessions[arb_id] = 'extended'
-            else:
-                print(f"{hex(arb_id)} remains in default session")
-                self.sessions[arb_id] = 'default'
+        Returns a list of all (client_arb_id, server_arb_id) pairs found.
+        """
+        # Set defaults
+        if min_id is None:
+            min_id = 0x000
+        if max_id is None:
+            max_id = 0x7FF
+        if auto_blacklist_duration is None:
+            auto_blacklist_duration = 0
+        if blacklist_args is None:
+            blacklist_args = []
 
-    def probe_services_in_sessions(self):
-        print("Probing services (e.g., VIN)...")
-        for arb_id in self.uds_ids:
-            vin_request = b'\x22\xF1\x90'  # Read Data By Identifier (VIN)
-            response = self.send_and_receive(arb_id, vin_request)
-            print(response)
-            if response and response.data[0] == 0x62:
-                vin = ''.join(chr(b) for b in response.data[3:])
-                print(f"VIN from {hex(arb_id)}: {vin}")
-            else:
-                print(f"VIN request failed or not supported on {hex(arb_id)}")
+        diagnostic_session_control = Services.DiagnosticSessionControl
+        service_id = diagnostic_session_control.service_id
+        sub_function = diagnostic_session_control.DiagnosticSessionType.DEFAULT_SESSION
+        session_control_data = [service_id, sub_function]
+
+        valid_session_control_responses = [0x50, 0x7F]
+
+        def is_valid_response(message):
+            return (len(message.data) >= 2 and
+                    message.data[1] in valid_session_control_responses)
+
+        found_arbitration_ids = []
+
+        # Example IsoTp instance
+        with IsoTp(None, None) as tp:
+            blacklist = set(blacklist_args)
+            # Perform automatic blacklist scan
+            if auto_blacklist_duration > 0:
+                auto_bl_arb_ids = auto_blacklist(tp.bus,
+                                                 auto_blacklist_duration,
+                                                 is_valid_response,
+                                                 print_results)
+                blacklist |= auto_bl_arb_ids
+
+            # Prepare session control frame
+            sess_ctrl_frm = tp.get_frames_from_message(session_control_data)
+            send_arb_id = min_id - 1
+            while send_arb_id < max_id:
+                send_arb_id += 1
+                if print_results:
+                    print(
+                        f"\rSending Diagnostic Session Control to 0x{send_arb_id:04x}", end="")
+                # Send Diagnostic Session Control
+                tp.transmit(sess_ctrl_frm, send_arb_id, None)
+                end_time = time.time() + delay
+                # Listen for response
+                while time.time() < end_time:
+                    msg = tp.bus.recv(0)
+                    if msg is None:
+                        continue
+                    if msg.arbitration_id in blacklist:
+                        continue
+                    if is_valid_response(msg):
+                        if verify:
+                            # Verification logic
+                            verified = False
+                            tp.set_filter_single_arbitration_id(
+                                msg.arbitration_id)
+                            if print_results:
+                                print(
+                                    f"\nVerifying response from 0x{send_arb_id:04x}")
+                            for verify_arb_id in range(send_arb_id, send_arb_id - 10, -1):
+                                if print_results:
+                                    print(
+                                        f"Resending 0x{verify_arb_id:04x}... ", end="")
+                                tp.transmit(sess_ctrl_frm, verify_arb_id, None)
+                                verification_end_time = time.time() + delay + 0.1
+                                while time.time() < verification_end_time:
+                                    verification_msg = tp.bus.recv(0)
+                                    if verification_msg is None:
+                                        continue
+                                    if is_valid_response(verification_msg):
+                                        verified = True
+                                        send_arb_id = verify_arb_id
+                                        break
+                                if verified:
+                                    print("Success")
+                                    break
+                            tp.clear_filters()
+                            if not verified:
+                                print("False match - skipping")
+                                continue
+
+                        if print_results:
+                            print(
+                                f"Found diagnostics server at 0x{send_arb_id:04x}, response at 0x{msg.arbitration_id:04x}")
+                        found_arbitration_ids.append(
+                            (send_arb_id, msg.arbitration_id))
+
+            if print_results:
+                print()
+
+        return found_arbitration_ids
 
     def decode_messages(self):
         if not self.dbc:
@@ -129,5 +209,3 @@ if __name__ == "__main__":
 
     adapter.listen(duration=args.duration)
     adapter.find_uds_service_ids()
-    adapter.discover_sessions()
-    adapter.probe_services_in_sessions()
