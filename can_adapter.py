@@ -41,10 +41,6 @@ class CANAdapter:
         print("Probing for UDS responders...")
         discovered_clients = []
 
-        # Print script header (similar to 'caringcaribou')
-        print(f"\n{'-' * (16 + len('v0.7'))}\nCARING CARIBOU v0.7 - python {time.strftime('%Y-%m-%d %H:%M:%S')}\n{'-' * (16 + len('v0.7'))}")
-        print("\nLoading module 'uds'")
-
         for arb_id in id_range:
             # Send the Diagnostic Session Control request (0x10)
             response = self.send_and_receive(arb_id, b'\x10\x01')
