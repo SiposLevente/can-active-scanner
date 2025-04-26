@@ -1,6 +1,6 @@
 import can
 import sys
-from utils.iso14229_1 import DiagnosticSessionControl, ReadDataByIdentifier
+from utils.iso14229_1 import Services, ReadDataByIdentifier
 from can_communication.can_comm import CANCommunication
 
 
@@ -41,7 +41,7 @@ class UDSDiscovery(CANCommunication):
     def uds_discovery(self):
         """Perform UDS discovery by querying ECUs."""
         # Prepare the UDS request (Diagnostic Session Control)
-        diagnostic_session_request = DiagnosticSessionControl(
+        diagnostic_session_request = Services.Services.DiagnosticSessionControl(
             0x01)  # 0x01 for default session
 
         # Send the diagnostic session request
