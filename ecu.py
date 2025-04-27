@@ -1,4 +1,4 @@
-from utils.can_actions import send_and_receive
+from utils.can_actions import is_valid_response, send_and_receive
 from utils.iso14229_1 import Services
 from utils.iso15765_2 import IsoTp
 
@@ -16,7 +16,7 @@ class ECU:
                 msg = tp.get_frames_from_message([0x10, session])
                 resp = send_and_receive(
                     tp, msg, self.client_id, 0.1)
-                if resp.data[0] == 0x50:
+                if resp.data[1] == 0x50 and is_valid_response(resp):
                     self.sessions.append(session)
 
     def discover_services(self):
