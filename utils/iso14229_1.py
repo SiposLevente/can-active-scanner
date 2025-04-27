@@ -1,4 +1,5 @@
 import time
+from typing import List
 
 
 class DynamicallyDefinedIdentifierArg(object):
@@ -304,7 +305,7 @@ class Iso14229_1(object):
         return response
 
     @staticmethod
-    def is_positive_response(response: list[int]) -> bool:
+    def is_positive_response(response: List[int]) -> bool:
         """
         Returns a bool indicating whether 'response' is positive
 
@@ -317,7 +318,7 @@ class Iso14229_1(object):
         return response is not None and len(response) >= 2 and response[0] != Constants.NR_SI
 
     @staticmethod
-    def is_negative_response(response: list[int]) -> bool:
+    def is_negative_response(response: List[int]) -> bool:
         """
         Returns a bool indicating whether 'response' is negative
 
