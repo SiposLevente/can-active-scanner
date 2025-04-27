@@ -4,9 +4,9 @@ from utils.iso15765_2 import IsoTp
 
 
 class ECU:
-    def __init__(self, client_id, server_id):
+    def __init__(self, client_id, setver_id):
         self.client_id = client_id
-        self.server_id = server_id
+        self.server_id = setver_id
         self.sessions = []
         self.services = []
 
