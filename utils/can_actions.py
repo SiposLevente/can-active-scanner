@@ -13,6 +13,11 @@ NOTIFIER_STOP_DURATION = 0.5
 DEFAULT_INTERFACE = "vcan0"
 
 
+def is_valid_response(message):
+    return (len(message.data) >= 2 and
+            message.data[1] in constants.valid_session_control_responses)
+
+
 def send_and_receive(tp: IsoTp, sess_ctrl_frm: list, send_arb_id: int, timeout: float = 0.1):
     tp.transmit(sess_ctrl_frm, send_arb_id, None)
     end_time = time.time() + timeout
@@ -23,11 +28,6 @@ def send_and_receive(tp: IsoTp, sess_ctrl_frm: list, send_arb_id: int, timeout: 
         if is_valid_response(msg):
             return msg
     return None
-
-
-def is_valid_response(self, message):
-    return (len(message.data) >= 2 and
-            message.data[1] in constants.valid_session_control_responses)
 
 
 def auto_blacklist(bus, duration, classifier_function, print_results):
