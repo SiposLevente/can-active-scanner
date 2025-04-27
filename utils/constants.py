@@ -8,6 +8,8 @@ BYTE_MAX = 0xFF
 
 MAX_MESSAGE_LENGTH = 0x8
 
+valid_session_control_responses = [0x50, 0x7F]
+
 UDS_SERVICE_NAMES = {
     0x10: "DIAGNOSTIC_SESSION_CONTROL",
     0x11: "ECU_RESET",

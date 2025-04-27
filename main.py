@@ -6,6 +6,7 @@ import argparse
 from utils.can_actions import auto_blacklist
 from utils.iso14229_1 import Services
 from utils.iso15765_2 import IsoTp
+import utils.constants as constants
 
 
 class CANAdapter:
@@ -64,34 +65,23 @@ class CANAdapter:
             print(f"Error sending message: {e}")
             return None
 
-    def find_uds_service_ids(self, min_id=None, max_id=None, blacklist_args=None,
-                             auto_blacklist_duration=None, delay=0.5, verify=True, print_results=True):
+    def is_valid_response(message):
+        return (len(message.data) >= 2 and
+                message.data[1] in constants.valid_session_control_responses)
+
+    def find_uds_service_ids(self, min_id=constants.ARBITRATION_ID_MIN, max_id=constants.ARBITRATION_ID_MAX, blacklist_args=[],
+                             auto_blacklist_duration=0, delay=0.5, verify=True, print_results=True):
         """
         Scans for diagnostics support by brute-forcing session control
         messages to different arbitration IDs.
 
         Returns a list of all (client_arb_id, server_arb_id) pairs found.
         """
-        # Set defaults
-        if min_id is None:
-            min_id = 0x000
-        if max_id is None:
-            max_id = 0x7FF
-        if auto_blacklist_duration is None:
-            auto_blacklist_duration = 0
-        if blacklist_args is None:
-            blacklist_args = []
 
         diagnostic_session_control = Services.DiagnosticSessionControl
         service_id = diagnostic_session_control.service_id
         sub_function = diagnostic_session_control.DiagnosticSessionType.DEFAULT_SESSION
         session_control_data = [service_id, sub_function]
-
-        valid_session_control_responses = [0x50, 0x7F]
-
-        def is_valid_response(message):
-            return (len(message.data) >= 2 and
-                    message.data[1] in valid_session_control_responses)
 
         found_arbitration_ids = []
 
@@ -102,7 +92,7 @@ class CANAdapter:
             if auto_blacklist_duration > 0:
                 auto_bl_arb_ids = auto_blacklist(tp.bus,
                                                  auto_blacklist_duration,
-                                                 is_valid_response,
+                                                 self.is_valid_response,
                                                  print_results)
                 blacklist |= auto_bl_arb_ids
 
@@ -124,7 +114,7 @@ class CANAdapter:
                         continue
                     if msg.arbitration_id in blacklist:
                         continue
-                    if is_valid_response(msg):
+                    if self.is_valid_response(msg):
                         if verify:
                             # Verification logic
                             verified = False
@@ -143,7 +133,7 @@ class CANAdapter:
                                     verification_msg = tp.bus.recv(0)
                                     if verification_msg is None:
                                         continue
-                                    if is_valid_response(verification_msg):
+                                    if self.is_valid_response(verification_msg):
                                         verified = True
                                         send_arb_id = verify_arb_id
                                         break
