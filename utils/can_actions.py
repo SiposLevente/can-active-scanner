@@ -1,8 +1,7 @@
-from sys import stdout
-import utils.constants as constants
-import can
 import time
+import utils.constants as constants
 
+from sys import stdout
 from utils.iso15765_2 import IsoTp
 
 MESSAGE_DELAY = 0.1
