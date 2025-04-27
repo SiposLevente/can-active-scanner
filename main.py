@@ -160,10 +160,6 @@ class CANAdapter:
                                 f"Found diagnostics server at 0x{send_arb_id:04x}, response at 0x{msg.arbitration_id:04x}")
                         found_arbitration_ids.append(
                             (send_arb_id, msg.arbitration_id))
-
-            if print_results:
-                print()
-
         return found_arbitration_ids
 
     def decode_messages(self):
@@ -207,5 +203,6 @@ if __name__ == "__main__":
         dbc_file=args.dbc_file
     )
 
-    adapter.listen(duration=args.duration)
-    adapter.find_uds_service_ids()
+    arbitration_ids = adapter.find_uds_service_ids(print_results=False)
+    for arb_id, server_id in arbitration_ids:
+        print(f"Found UDS server at {hex(server_id)} for client {hex(arb_id)}")
