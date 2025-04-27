@@ -70,7 +70,7 @@ class CANAdapter:
                 message.data[1] in constants.valid_session_control_responses)
 
     def find_uds_service_ids(self, min_id=constants.ARBITRATION_ID_MIN, max_id=constants.ARBITRATION_ID_MAX, blacklist_args=[],
-                             auto_blacklist_duration=0, delay=0.5, verify=True, print_results=True):
+                             auto_blacklist_duration=0, delay=0.1, verify=True, print_results=True):
         """
         Scans for diagnostics support by brute-forcing session control
         messages to different arbitration IDs.
@@ -150,6 +150,8 @@ class CANAdapter:
                                 f"Found diagnostics server at 0x{send_arb_id:04x}, response at 0x{msg.arbitration_id:04x}")
                         found_arbitration_ids.append(
                             (send_arb_id, msg.arbitration_id))
+        if print_results:
+            print()
         return found_arbitration_ids
 
     def decode_messages(self):
