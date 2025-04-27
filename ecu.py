@@ -13,8 +13,9 @@ class ECU:
     def discover_sessions(self):
         with IsoTp(None, None) as tp:
             for session in range(0x01, 0x0F):
+                msg = tp.get_frames_from_message([0x10, session])
                 resp = send_and_receive(
-                    tp, [0x10, session], self.client_id, 0.1)
+                    tp, msg, self.client_id, 0.1)
                 if resp.data[0] == 0x50:
                     self.sessions.append(session)
 
