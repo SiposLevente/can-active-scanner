@@ -204,6 +204,17 @@ class Services(object):
             def get_send_key_for_request_seed(seed):
                 return seed + 1
 
+    class ReadDataByIdentifier(BaseService):
+        service_id = ServiceID.READ_DATA_BY_IDENTIFIER
+
+        class DataIdentifier(object):
+            # 0x00 ISO SAE Reserved
+            # 0x01-0x7F Vehicle manufacturer specific
+            # 0x80-0xFE System supplier specific
+            # 0xFF ISO SAE Reserved
+
+            pass
+
     class TesterPresent(BaseService):
 
         service_id = ServiceID.TESTER_PRESENT

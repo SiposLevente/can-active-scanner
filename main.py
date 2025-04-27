@@ -19,6 +19,7 @@ class CANAdapter:
         self.messages = []
         self.uds_ids = set()
         self.sessions = {}
+        self.uds_service_ids = set()
 
         if dbc_file:
             try:
@@ -43,27 +44,28 @@ class CANAdapter:
                 if print_messages:
                     print(f"Received message: {message}")
 
-    def send_and_receive(self, arbitration_id: int, data: bytes, timeout: float = 1.0):
-        """ Sends a CAN message and waits for a response. """
-        try:
-            message = can.Message(
-                arbitration_id=arbitration_id, data=data, is_extended_id=False)
-            self.bus.send(message)
-            print(
-                f"Sent message: {hex(arbitration_id)} with data {data.hex()}")
+    def send_and_receive(self, tp: IsoTp, sess_ctrl_frm: list, send_arb_id: int, timeout: float = 0.1):
+        """
+        Sends a message using IsoTp and waits for a response within the specified timeout.
 
-            # Wait for response within timeout period
-            response = self.bus.recv(timeout=timeout)
-            if response:
-                print(
-                    f"Received response: {response.data.hex()} from {hex(response.arbitration_id)}")
-                return response
-            else:
-                print(f"No response received within {timeout} seconds.")
-                return None
-        except can.CanError as e:
-            print(f"Error sending message: {e}")
-            return None
+        Args:
+            tp (IsoTp): The IsoTp instance for transmitting and receiving messages.
+            sess_ctrl_frm (list): The session control frame to send.
+            send_arb_id (int): The arbitration ID to send the message to.
+            timeout (float): The time to wait for a response.
+
+        Returns:
+            can.Message: The received CAN message if valid, otherwise None.
+        """
+        tp.transmit(sess_ctrl_frm, send_arb_id, None)
+        end_time = time.time() + timeout
+        while time.time() < end_time:
+            msg = tp.bus.recv(0)
+            if msg is None:
+                continue
+            if self.is_valid_response(msg):
+                return msg
+        return None
 
     def is_valid_response(self, message):
         return (len(message.data) >= 2 and
@@ -105,54 +107,53 @@ class CANAdapter:
                     print(
                         f"\rSending Diagnostic Session Control to 0x{send_arb_id:04x}", end="")
                 # Send Diagnostic Session Control
-                tp.transmit(sess_ctrl_frm, send_arb_id, None)
-                end_time = time.time() + delay
-                # Listen for response
-                while time.time() < end_time:
-                    msg = tp.bus.recv(0)
-                    if msg is None:
-                        continue
-                    if msg.arbitration_id in blacklist:
-                        continue
-                    if self.is_valid_response(msg):
-                        if verify:
-                            # Verification logic
-                            verified = False
-                            tp.set_filter_single_arbitration_id(
-                                msg.arbitration_id)
-                            if print_results:
-                                print(
-                                    f"\nVerifying response from 0x{send_arb_id:04x}")
-                            for verify_arb_id in range(send_arb_id, send_arb_id - 10, -1):
-                                if print_results:
-                                    print(
-                                        f"Resending 0x{verify_arb_id:04x}... ", end="")
-                                tp.transmit(sess_ctrl_frm, verify_arb_id, None)
-                                verification_end_time = time.time() + delay + 0.1
-                                while time.time() < verification_end_time:
-                                    verification_msg = tp.bus.recv(0)
-                                    if verification_msg is None:
-                                        continue
-                                    if self.is_valid_response(verification_msg):
-                                        verified = True
-                                        send_arb_id = verify_arb_id
-                                        break
-                                if verified:
-                                    print("Success")
-                                    break
-                            tp.clear_filters()
-                            if not verified:
-                                print("False match - skipping")
-                                continue
-
+                response_msg = self.send_and_receive(
+                    tp, sess_ctrl_frm, send_arb_id, timeout=delay)
+                if response_msg is None:
+                    continue
+                if response_msg.arbitration_id in blacklist:
+                    continue
+                if self.is_valid_response(response_msg):
+                    if verify:
+                        # Verification logic
+                        verified = False
+                        tp.set_filter_single_arbitration_id(
+                            response_msg.arbitration_id)
                         if print_results:
                             print(
-                                f"Found diagnostics server at 0x{send_arb_id:04x}, response at 0x{msg.arbitration_id:04x}")
-                        found_arbitration_ids.append(
-                            (send_arb_id, msg.arbitration_id))
+                                f"\nVerifying response from 0x{send_arb_id:04x}")
+                        for verify_arb_id in range(send_arb_id, send_arb_id - 10, -1):
+                            if print_results:
+                                print(
+                                    f"Resending 0x{verify_arb_id:04x}... ", end="")
+                            verification_msg = self.send_and_receive(
+                                tp, sess_ctrl_frm, verify_arb_id, timeout=delay + 0.1)
+                            if verification_msg and self.is_valid_response(verification_msg):
+                                verified = True
+                                send_arb_id = verify_arb_id
+                                break
+                        tp.clear_filters()
+                        if not verified:
+                            if print_results:
+                                print("False match - skipping")
+                            continue
+
+                    if print_results:
+                        print(
+                            f"Found diagnostics server at 0x{send_arb_id:04x}, response at 0x{response_msg.arbitration_id:04x}")
+                    found_arbitration_ids.append(
+                        (send_arb_id, response_msg.arbitration_id))
         if print_results:
             print()
+
+        self.uds_service_ids = set(
+            arb_id for arb_id, _ in found_arbitration_ids)
+
         return found_arbitration_ids
+
+    def find_sessions(self, print_results=True):
+
+        print("Finding sessions...")
 
     def decode_messages(self):
         if not self.dbc:
@@ -195,6 +196,6 @@ if __name__ == "__main__":
         dbc_file=args.dbc_file
     )
 
-    arbitration_ids = adapter.find_uds_service_ids(print_results=False)
+    arbitration_ids = adapter.find_uds_service_ids(print_results=True)
     for arb_id, server_id in arbitration_ids:
         print(f"Found UDS server at {hex(server_id)} for client {hex(arb_id)}")
