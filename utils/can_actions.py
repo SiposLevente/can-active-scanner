@@ -11,7 +11,7 @@ NOTIFIER_STOP_DURATION = 0.5
 
 # Global CAN interface setting, which can be set through the -i flag to caringcaribou.py
 # The value None corresponds to the default CAN interface (typically can0)
-DEFAULT_INTERFACE = None
+DEFAULT_INTERFACE = "vcan0"
 
 
 def send_and_receive(tp: IsoTp, sess_ctrl_frm: list, send_arb_id: int, timeout: float = 0.1):
