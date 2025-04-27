@@ -65,7 +65,7 @@ class CANAdapter:
             print(f"Error sending message: {e}")
             return None
 
-    def is_valid_response(message):
+    def is_valid_response(self, message):
         return (len(message.data) >= 2 and
                 message.data[1] in constants.valid_session_control_responses)
 
