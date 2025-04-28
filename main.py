@@ -54,7 +54,6 @@ class CANAdapter:
                 blacklist |= auto_bl_arb_ids
 
             # Prepare session control frame
-            sess_ctrl_frm = tp.get_frames_from_message(session_control_data)
             send_arb_id = min_id - 1
             while send_arb_id < max_id:
                 send_arb_id += 1
@@ -63,7 +62,7 @@ class CANAdapter:
                         f"\rSending Diagnostic Session Control to 0x{send_arb_id:04x}", end="")
                 # Send Diagnostic Session Control
                 response_msg = send_and_receive(
-                    tp, sess_ctrl_frm, send_arb_id, timeout=delay)
+                    tp, session_control_data, send_arb_id, timeout=delay)
 
                 if response_msg is None:
                     continue
@@ -83,7 +82,7 @@ class CANAdapter:
                                 print(
                                     f"Resending 0x{verify_arb_id:04x}... ", end="")
                             verification_msg = send_and_receive(
-                                tp, sess_ctrl_frm, verify_arb_id, timeout=delay + 0.1)
+                                tp, session_control_data, verify_arb_id, timeout=delay + 0.1)
                             if verification_msg and is_valid_response(verification_msg):
                                 verified = True
                                 send_arb_id = verify_arb_id
@@ -105,13 +104,13 @@ class CANAdapter:
     def gather_ecu_info(self):
         for ecu in self.ECUs:
             ecu.discover_sessions()
-            ecu.discover_services()
+            ecu.discover_dids()
 
     def print_ecu_info(self):
         for ecu in self.ECUs:
             print(f"ECU ID: {ecu.client_id}, Server ID: {ecu.server_id}")
             print(f"Sessions: {ecu.get_sessions()}")
-            print(f"Services: {ecu.get_services()}")
+            print(f"Services: {ecu.get_dids()}")
             print("-" * 20)
 
     # ==========

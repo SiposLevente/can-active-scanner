@@ -17,8 +17,9 @@ def is_valid_response(message):
     return (len(message.data) >= 2 and message.data[1] in constants.valid_session_control_responses)
 
 
-def send_and_receive(tp: IsoTp, sess_ctrl_frm: list, send_arb_id: int, timeout: float = 0.1):
-    tp.transmit(sess_ctrl_frm, send_arb_id, None)
+def send_and_receive(tp: IsoTp, msg: list, send_arb_id: int, timeout: float = 0.1):
+    msg = tp.get_frames_from_message(msg)
+    tp.transmit(msg, send_arb_id, None)
     end_time = time.time() + timeout
     while time.time() < end_time:
         msg = tp.bus.recv(0)

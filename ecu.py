@@ -1,4 +1,5 @@
 from utils.can_actions import is_valid_response, send_and_receive
+from utils.constants import DID_IDENTIFIERS
 from utils.iso14229_1 import Services
 from utils.iso15765_2 import IsoTp
 
@@ -9,6 +10,7 @@ class ECU:
         self.server_id = setver_id
         self.sessions = []
         self.services = []
+        self.dids = []
 
     def discover_sessions(self):
         diagnostic_session_control = Services.DiagnosticSessionControl
@@ -17,21 +19,16 @@ class ECU:
         session_control_data = [service_id, sub_function]
 
         with IsoTp(None, None) as tp:
-            default_session_msg = tp.get_frames_from_message(
-                session_control_data)
-
             resp = send_and_receive(
-                tp, default_session_msg, self.client_id, timeout=0.1)
+                tp, session_control_data, self.client_id, timeout=0.1)
             if resp and is_valid_response(resp):
                 print("Entered Default Session (0x01) successfully.")
 
             for session in range(0x02, 0x0F):  # Check sessions from 0x02 to 0x0F
-
-                msg = tp.get_frames_from_message(
-                    [diagnostic_session_control.service_id, session])
                 print(f"Requesting Session {hex(session)}")
 
-                resp = send_and_receive(tp, msg, self.client_id, timeout=0.1)
+                resp = send_and_receive(
+                    tp, [diagnostic_session_control.service_id, session], self.client_id, timeout=0.1)
                 print(f"Response: {resp}")
 
                 if resp and is_valid_response(resp):
@@ -39,30 +36,38 @@ class ECU:
                     self.sessions.append(session)
 
             resp = send_and_receive(
-                tp, default_session_msg, self.client_id, timeout=0.1)
+                tp, session_control_data, self.client_id, timeout=0.1)
 
-    def discover_services(self):
-        with IsoTp(None, None) as tp:
-            for ecu, sessions in self.sessions.items():
-                print(f"Discovering services for ECU {hex(ecu)}...")
-                for session in sessions:
-                    print(
-                        f"  - Checking services for Session {hex(session)}...")
-                    services_to_check = [0x19, 0x22, 0x31]
-                    for service_id in services_to_check:
-                        msg = tp.get_frames_from_message([service_id])
-                        resp = send_and_receive(tp, msg, ecu, timeout=0.1)
-                        if resp and resp.data[0] == 0x50 and is_valid_response(resp):
-                            print(
-                                f"    Service {hex(service_id)} is supported in Session {hex(session)}")
-                            if ecu not in self.services:
-                                self.services[ecu] = {}
-                            if session not in self.services[ecu]:
-                                self.services[ecu][session] = []
-                            self.services[ecu][session].append(service_id)
+    def discover_dids(self):
+        for did in DID_IDENTIFIERS:
+            # Create the Read Data by Identifier (0x22) request message
+            # 0x22 is the service ID for Read Data by Identifier
+            request_data = [0x22, did[0]]
+            with IsoTp(None, None) as tp:
+                request_msg = tp.get_frames_from_message(request_data)
+
+                # Send the request and wait for the response
+                resp = send_and_receive(
+                    tp, request_msg, self.client_id, timeout=0.1)
+
+                # If response is valid, store the DID and data
+                if resp and is_valid_response(resp):
+                    print(f"Discovered DID 0x{did:X} with data: {resp}")
+                    self.dids.append(did[0])
+                else:
+                    print(f"Failed to discover DID 0x{did:X}")
 
     def get_sessions(self):
         return self.sessions
 
-    def get_services(self):
-        return self.services
+    def get_dids(self):
+        return self.dids
+
+    """
+
+
+blága szabolcs
+
+hétfő 14: 00
+
+"""
