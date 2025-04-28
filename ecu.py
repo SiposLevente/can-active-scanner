@@ -52,7 +52,7 @@ class ECU:
 
                 # If response is valid, store the DID and data
                 if resp and is_valid_response(resp):
-                    print(f"Discovered DID 0x{did:X} with data: {resp}")
+                    print(f"Discovered DID 0x{did[0]:X} with data: {resp}")
                     self.dids.append(did[0])
                 else:
                     print(f"Failed to discover DID 0x{did:X}")
@@ -62,12 +62,3 @@ class ECU:
 
     def get_dids(self):
         return self.dids
-
-    """
-
-
-blága szabolcs
-
-hétfő 14: 00
-
-"""
