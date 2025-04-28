@@ -11,23 +11,30 @@ class ECU:
         self.services = []
 
     def discover_sessions(self):
+        diagnostic_session_control = Services.DiagnosticSessionControl
+        service_id = diagnostic_session_control.service_id
+        sub_function = diagnostic_session_control.DiagnosticSessionType.DEFAULT_SESSION
+        session_control_data = [service_id, sub_function]
+
         with IsoTp(None, None) as tp:
-            default_session_msg = tp.get_frames_from_message([0x10, 0x01])
+            default_session_msg = tp.get_frames_from_message(
+                session_control_data)
 
             resp = send_and_receive(
                 tp, default_session_msg, self.client_id, timeout=0.1)
-            if resp and resp.data[0] == 0x50 and is_valid_response(resp):
+            if resp and is_valid_response(resp):
                 print("Entered Default Session (0x01) successfully.")
 
             for session in range(0x02, 0x0F):  # Check sessions from 0x02 to 0x0F
 
-                msg = tp.get_frames_from_message([0x10, session])
+                msg = tp.get_frames_from_message(
+                    [diagnostic_session_control.service_id, session])
                 print(f"Requesting Session {hex(session)}")
 
                 resp = send_and_receive(tp, msg, self.client_id, timeout=0.1)
-                print(f"Response: {resp}")
+                print(f"Response: {hex(resp)}")
 
-                if resp and resp.data[0] == 0x50 and is_valid_response(resp):
+                if resp and is_valid_response(resp):
                     print(f"Session {hex(session)} is supported.")
                     self.sessions.append(session)
 
@@ -35,31 +42,24 @@ class ECU:
                 tp, default_session_msg, self.client_id, timeout=0.1)
 
     def discover_services(self):
-        # Common UDS services based on the extracted SID information
-        services = {
-            0x10: "Diagnostic Session Control",
-            0x11: "ECU Reset",
-            0x27: "Security Access",
-            0x28: "Communication Control",
-            0x29: "Authentication",
-            0x3E: "Tester Present",
-            0x83: "Access Timing Parameters",
-            0x85: "Control DTC Settings",
-            0x87: "Link Control"
-        }
-
         with IsoTp(None, None) as tp:
-            for sid, service_name in services.items():
-                # Send the service request to the ECU
-                msg = tp.get_frames_from_message([sid])
-                resp = send_and_receive(
-                    tp, msg, self.client_id, timeout=0.1)
-
-                # Check for positive response (0x50) indicating the service is supported
-                if resp and resp.data and resp.data[0] == 0x50:
+            for ecu, sessions in self.sessions.items():
+                print(f"Discovering services for ECU {hex(ecu)}...")
+                for session in sessions:
                     print(
-                        f"Service {service_name} (SID {hex(sid)}) is supported.")
-                    self.services.append(service_name)
+                        f"  - Checking services for Session {hex(session)}...")
+                    services_to_check = [0x19, 0x22, 0x31]
+                    for service_id in services_to_check:
+                        msg = tp.get_frames_from_message([service_id])
+                        resp = send_and_receive(tp, msg, ecu, timeout=0.1)
+                        if resp and resp.data[0] == 0x50 and is_valid_response(resp):
+                            print(
+                                f"    Service {hex(service_id)} is supported in Session {hex(session)}")
+                            if ecu not in self.services:
+                                self.services[ecu] = {}
+                            if session not in self.services[ecu]:
+                                self.services[ecu][session] = []
+                            self.services[ecu][session].append(service_id)
 
     def get_sessions(self):
         return self.sessions

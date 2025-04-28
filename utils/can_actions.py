@@ -14,8 +14,7 @@ DEFAULT_INTERFACE = "vcan0"
 
 
 def is_valid_response(message):
-    return (len(message.data) >= 2 and
-            message.data[1] in constants.valid_session_control_responses)
+    return (len(message.data) >= 2 and message.data[1] in constants.valid_session_control_responses)
 
 
 def send_and_receive(tp: IsoTp, sess_ctrl_frm: list, send_arb_id: int, timeout: float = 0.1):
