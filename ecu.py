@@ -1,4 +1,5 @@
 from utils.can_actions import is_valid_response, send_and_receive
+from utils.common import convert_to_byte_list
 from utils.constants import DID_IDENTIFIERS
 from utils.iso14229_1 import Services
 from utils.iso15765_2 import IsoTp
@@ -44,8 +45,10 @@ class ECU:
             # 0x22 is the service ID for Read Data by Identifier
             with IsoTp(None, None) as tp:
                 # Send the request and wait for the response
+                did_values = convert_to_byte_list(did[0])
+
                 resp = send_and_receive(
-                    tp, [0x22, did[0]], self.client_id, timeout=0.1)
+                    tp, [0x22, did_values[0], did_values[1]], self.client_id, timeout=0.1)
 
                 # If response is valid, store the DID and data
                 if resp and is_valid_response(resp):
