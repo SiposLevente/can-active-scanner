@@ -42,13 +42,10 @@ class ECU:
         for did in DID_IDENTIFIERS:
             # Create the Read Data by Identifier (0x22) request message
             # 0x22 is the service ID for Read Data by Identifier
-            request_data = [0x22, did[0]]
             with IsoTp(None, None) as tp:
-                request_msg = tp.get_frames_from_message(request_data)
-
                 # Send the request and wait for the response
                 resp = send_and_receive(
-                    tp, request_msg, self.client_id, timeout=0.1)
+                    tp, [0x22, did[0]], self.client_id, timeout=0.1)
 
                 # If response is valid, store the DID and data
                 if resp and is_valid_response(resp):
