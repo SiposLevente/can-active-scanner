@@ -1,5 +1,5 @@
-def convert_to_byte_list(did_identifiers):
-    return [(divmod(did[0], 0x100), did[1]) for did in did_identifiers]
+def convert_to_byte_list(did_identifier):
+    return [(did_identifier & 0xFF00) >> 8, did_identifier & 0xFF]
 
 
 def parse_int_dec_or_hex(value):
