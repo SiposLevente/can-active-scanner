@@ -32,7 +32,7 @@ class ECU:
                 print(f"Requesting Session {hex(session)}")
 
                 resp = send_and_receive(tp, msg, self.client_id, timeout=0.1)
-                print(f"Response: {hex(resp)}")
+                print(f"Response: {resp}")
 
                 if resp and is_valid_response(resp):
                     print(f"Session {hex(session)} is supported.")
