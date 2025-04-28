@@ -1,7 +1,7 @@
 from utils.can_actions import is_valid_response, send_and_receive
 from utils.common import convert_to_byte_list
 from utils.constants import DID_IDENTIFIERS
-from utils.iso14229_1 import Services
+from utils.iso14229_1 import Constants, Iso14229_1, NegativeResponseCodes, Services
 from utils.iso15765_2 import IsoTp
 
 
@@ -11,7 +11,6 @@ class ECU:
         self.server_id = setver_id
         self.sessions = []
         self.services = []
-        self.dids = []
 
     def discover_sessions(self):
         diagnostic_session_control = Services.DiagnosticSessionControl
@@ -30,7 +29,6 @@ class ECU:
 
                 resp = send_and_receive(
                     tp, [diagnostic_session_control.service_id, session], self.client_id, timeout=0.1)
-                print(f"Response: {resp}")
 
                 if resp and is_valid_response(resp):
                     print(f"Session {hex(session)} is supported.")
@@ -39,26 +37,38 @@ class ECU:
             resp = send_and_receive(
                 tp, session_control_data, self.client_id, timeout=0.1)
 
-    def discover_dids(self):
+    def discover_services(self, timeout: int = 0.1):
         for did in DID_IDENTIFIERS:
             # Create the Read Data by Identifier (0x22) request message
             # 0x22 is the service ID for Read Data by Identifier
-            with IsoTp(None, None) as tp:
-                # Send the request and wait for the response
-                did_values = convert_to_byte_list(did[0])
+            with IsoTp(arb_id_request=self.client_id, arb_id_response=self.server_id) as tp:
+                for service_id in range(0, 0xff):
+                    tp.send_request([service_id])
 
-                resp = send_and_receive(
-                    tp, [0x22, did_values[0], did_values[1]], self.client_id, timeout=0.1)
-
-                # If response is valid, store the DID and data
-                if resp and is_valid_response(resp):
-                    print(f"Discovered DID 0x{did[0]:X} with data: {resp}")
-                    self.dids.append(did[0])
-                else:
-                    print(f"Failed to discover DID 0x{did[0]:X}")
+                # Get response
+                msg = tp.bus.recv(timeout)
+                if msg is None:
+                    # No response received
+                    continue
+                # Parse response
+                if len(msg.data) > 3:
+                    # Since service ID is included in the response, mapping is correct even if response is delayed
+                    response_id = msg.data[1]
+                    response_service_id = msg.data[2]
+                    status = msg.data[3]
+                    if response_id != Constants.NR_SI:
+                        request_id = Iso14229_1.get_service_request_id(
+                            response_id)
+                        self.services.append(request_id)
+                    elif status != NegativeResponseCodes.SERVICE_NOT_SUPPORTED:
+                        # Any other response than "service not supported" counts
+                        self.services.append(response_service_id)
 
     def get_sessions(self):
         return self.sessions
+
+    def get_services(self):
+        return self.services
 
     def get_dids(self):
         return self.dids

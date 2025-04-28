@@ -104,7 +104,7 @@ class CANAdapter:
     def gather_ecu_info(self):
         for ecu in self.ECUs:
             ecu.discover_sessions()
-            ecu.discover_dids()
+            ecu.discover_services()
 
     def print_ecu_info(self):
         for ecu in self.ECUs:
