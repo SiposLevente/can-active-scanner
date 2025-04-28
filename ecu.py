@@ -55,7 +55,7 @@ class ECU:
                     print(f"Discovered DID 0x{did[0]:X} with data: {resp}")
                     self.dids.append(did[0])
                 else:
-                    print(f"Failed to discover DID 0x{did:X}")
+                    print(f"Failed to discover DID 0x{did[0]:X}")
 
     def get_sessions(self):
         return self.sessions
