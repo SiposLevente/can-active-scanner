@@ -108,7 +108,8 @@ class CANAdapter:
 
     def print_ecu_info(self):
         for ecu in self.ECUs:
-            print(f"ECU ID: {ecu.client_id}, Server ID: {ecu.server_id}")
+            print(
+                f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
             print(f"Sessions: {ecu.get_sessions()}")
             print(f"Services: {ecu.get_dids()}")
             print("-" * 20)
