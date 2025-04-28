@@ -12,12 +12,27 @@ class ECU:
 
     def discover_sessions(self):
         with IsoTp(None, None) as tp:
-            for session in range(0x01, 0x0F):
+            default_session_msg = tp.get_frames_from_message([0x10, 0x01])
+
+            resp = send_and_receive(
+                tp, default_session_msg, self.client_id, timeout=0.1)
+            if resp and resp.data[0] == 0x50 and is_valid_response(resp):
+                print("Entered Default Session (0x01) successfully.")
+
+            for session in range(0x02, 0x0F):  # Check sessions from 0x02 to 0x0F
+
                 msg = tp.get_frames_from_message([0x10, session])
-                resp = send_and_receive(
-                    tp, msg, self.client_id, 0.1)
-                if resp.data[1] == 0x50 and is_valid_response(resp):
+                print(f"Requesting Session {hex(session)}")
+
+                resp = send_and_receive(tp, msg, self.client_id, timeout=0.1)
+                print(f"Response: {resp}")
+
+                if resp and resp.data[0] == 0x50 and is_valid_response(resp):
+                    print(f"Session {hex(session)} is supported.")
                     self.sessions.append(session)
+
+            resp = send_and_receive(
+                tp, default_session_msg, self.client_id, timeout=0.1)
 
     def discover_services(self):
         # Common UDS services based on the extracted SID information
