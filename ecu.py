@@ -41,6 +41,7 @@ class ECU:
         # Create the Read Data by Identifier (0x22) request message
         # 0x22 is the service ID for Read Data by Identifier
         with IsoTp(arb_id_request=self.client_id, arb_id_response=self.server_id) as tp:
+            tp.set_filter_single_arbitration_id(self.server_id)
             for service_id in range(0, 0xff):
                 tp.send_request([service_id])
 
