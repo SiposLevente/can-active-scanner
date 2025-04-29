@@ -38,12 +38,11 @@ class ECU:
                 tp, session_control_data, self.client_id, timeout=0.1)
 
     def discover_services(self, timeout: int = 0.1):
-        for did in DID_IDENTIFIERS:
-            # Create the Read Data by Identifier (0x22) request message
-            # 0x22 is the service ID for Read Data by Identifier
-            with IsoTp(arb_id_request=self.client_id, arb_id_response=self.server_id) as tp:
-                for service_id in range(0, 0xff):
-                    tp.send_request([service_id])
+        # Create the Read Data by Identifier (0x22) request message
+        # 0x22 is the service ID for Read Data by Identifier
+        with IsoTp(arb_id_request=self.client_id, arb_id_response=self.server_id) as tp:
+            for service_id in range(0, 0xff):
+                tp.send_request([service_id])
 
                 # Get response
                 msg = tp.bus.recv(timeout)
