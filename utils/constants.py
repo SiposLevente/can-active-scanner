@@ -10,6 +10,21 @@ MAX_MESSAGE_LENGTH = 0x8
 
 valid_session_control_responses = [0x50, 0x7F]
 
+CAR_TYPE_MAPPING = {
+    '5WA': 'Volkswagen AG (Volkswagen, Audi, Skoda, SEAT)',
+    '5FA': 'Volkswagen AG (Volkswagen, Audi, Skoda, SEAT)',
+    '1EA': 'Volkswagen AG (Volkswagen, Audi, Skoda, SEAT)',
+    '2Q0': 'Continental AG (likely for ECUs like Engine Control Modules, Transmission Control Modules)',
+    '3Q0': 'Continental AG (likely for ECUs like Engine Control Modules, Transmission Control Modules)',
+    '5Q0': 'Continental AG (likely for ECUs like Engine Control Modules, Transmission Control Modules)',
+    '5WA-series': 'Engine Control Modules (ECMs) or Transmission Control Modules (TCMs) used in Volkswagen AG vehicles',
+    '5FA-series': 'Body Control Modules (BCMs) or Gateway Modules',
+    '1EA-series': 'Powertrain Control Modules (PCMs) or Engine Management Systems',
+    '2Q0-series': 'ECUs produced by Continental, including engine management, ABS, airbag systems',
+    '3Q0-series': 'ECUs produced by Continental, including engine management, ABS, airbag systems',
+    '5Q0-series': 'ECUs produced by Continental, including engine management, ABS, airbag systems'
+}
+
 DID_IDENTIFIERS = [
     (0xF180, "Boot software identification"),
     (0xF181, "Application software identification"),

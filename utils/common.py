@@ -1,5 +1,14 @@
+from utils.constants import CAR_TYPE_MAPPING
+
+
 def convert_to_byte_list(did_identifier):
     return [(did_identifier & 0xFF00) >> 8, did_identifier & 0xFF]
+
+
+def get_car_type(identifier):
+
+    # Return the car type based on the identifier
+    return CAR_TYPE_MAPPING.get(identifier, 'Unknown identifier')
 
 
 def parse_int_dec_or_hex(value):

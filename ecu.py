@@ -38,8 +38,6 @@ class ECU:
                 tp, session_control_data, self.client_id, timeout=0.1)
 
     def discover_services(self, timeout: int = 0.1):
-        # Create the Read Data by Identifier (0x22) request message
-        # 0x22 is the service ID for Read Data by Identifier
         with IsoTp(arb_id_request=self.client_id, arb_id_response=self.server_id) as tp:
             tp.set_filter_single_arbitration_id(self.server_id)
             for service_id in range(0, 0xff):
@@ -63,6 +61,29 @@ class ECU:
                     elif status != NegativeResponseCodes.SERVICE_NOT_SUPPORTED:
                         # Any other response than "service not supported" counts
                         self.services.append(response_service_id)
+
+    def get_data_from_ecu(self, did: int):
+        if 0x22 in self.services:
+            # Read Data by Identifier (DID) service is supported
+
+            # Send request to ECU
+            request = [0x22, did]
+            with IsoTp(arb_id_request=self.client_id, arb_id_response=self.server_id) as tp:
+                tp.send_request(request)
+
+                # Get response
+                msg = tp.bus.recv(0.1)
+                if msg is None:
+                    return None
+
+                # Parse response
+                if len(msg.data) > 3:
+                    response_did = msg.data[1]
+                    data_length = msg.data[2]
+                    data = msg.data[3:3 + data_length]
+                    print(
+                        f"DID {hex(response_did)}: {data}")
+                    return data
 
     def get_sessions(self):
         return self.sessions
