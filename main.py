@@ -111,7 +111,7 @@ class CANAdapter:
             print(
                 f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
             print(f"Sessions: {ecu.get_sessions()}")
-            print(f"Services: {ecu.get_dids()}")
+            print(f"Services: {ecu.get_services()}")
             print("-" * 20)
 
     # ==========

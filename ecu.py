@@ -69,6 +69,3 @@ class ECU:
 
     def get_services(self):
         return self.services
-
-    def get_dids(self):
-        return self.dids
