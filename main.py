@@ -1,6 +1,6 @@
 import argparse
 from can_adapter import CANAdapter
-from utils.can_actions import DEFAULT_INTERFACE
+from utils.constants import DEFAULT_INTERFACE
 
 
 if __name__ == "__main__":
