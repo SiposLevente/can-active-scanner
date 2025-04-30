@@ -6,7 +6,7 @@ from utils.iso15765_2 import IsoTp
 
 
 def is_valid_response(message):
-    return (len(message.data) >= 2 and message.data[1] in constants.valid_session_control_responses)
+    return (len(message.data) >= 2 and message.data[1] in constants.VALID_SESSION_CONTROL_RESPONSES)
 
 
 def send_and_receive(tp: IsoTp, msg: list, send_arb_id: int, timeout: float = 0.1):
