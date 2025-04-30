@@ -8,7 +8,15 @@ BYTE_MAX = 0xFF
 
 MAX_MESSAGE_LENGTH = 0x8
 
-valid_session_control_responses = [0x50, 0x7F]
+MESSAGE_DELAY = 0.1
+DELAY_STEP = 0.02
+NOTIFIER_STOP_DURATION = 0.5
+
+# Global CAN interface setting, which can be set through the -i flag to caringcaribou.py
+# The value None corresponds to the default CAN interface (typically can0)
+DEFAULT_INTERFACE = "vcan0"
+
+VALID_SESSION_CONTROL_RESPONSES = [0x50, 0x7F]
 
 CAR_TYPE_MAPPING = {
     '5WA': 'Volkswagen AG (Volkswagen, Audi, Skoda, SEAT)',

@@ -1,6 +1,6 @@
 
 import time
-from typing import List
+from typing import Counter, List, Protocol
 
 import can
 import cantools
@@ -10,6 +10,9 @@ from utils import constants
 from utils.can_actions import auto_blacklist, is_valid_response, send_and_receive
 from utils.iso14229_1 import Services
 from utils.iso15765_2 import IsoTp
+from enum import Enum
+
+from utils.protocol_types import infer_protocol
 
 
 class CANAdapter:
@@ -19,7 +22,6 @@ class CANAdapter:
         self.bitrate = bitrate
         self.dbc_file = dbc_file
         self.dbc = None
-        self.messages = []
         self.ECUs: List[ECU] = []
 
         if dbc_file:
@@ -139,13 +141,12 @@ class CANAdapter:
         for ecu in self.ECUs:
             print(ecu)
 
-    def decode_messages(self):
+    def decode_messages(self, messages=[]):
         if not self.dbc:
             print("No DBC file provided. Skipping decoding.")
             return []
-
         decoded_messages = []
-        for message in self.messages:
+        for message in messages:
             try:
                 decoded = self.dbc.decode_message(
                     message.arbitration_id, message.data)
@@ -154,23 +155,34 @@ class CANAdapter:
                 continue
         return decoded_messages
 
-    def save_messages(self, output_file: str, decoded: bool = True):
+    def save_messages(self, output_file: str, decoded: bool = True, duration=10):
+        messages = self.listen(duration, False)
         with open(output_file, 'w') as f:
             if decoded and self.dbc:
                 decoded_messages = self.decode_messages()
                 for arbitration_id, data in decoded_messages:
                     f.write(f"ID={arbitration_id}, Data={data}\n")
             else:
-                for message in self.messages:
+                for message in messages:
                     f.write(f"{message}\n")
         print(f"Messages saved to {output_file}")
 
     def listen(self, duration: int, print_messages: bool = False):
+        messages = []
         print(f"Listening on {self.channel} for {duration} seconds...")
         start_time = time.time()
         while time.time() - start_time < duration:
             message = self.bus.recv(timeout=1)
             if message:
-                self.messages.append(message)
+                messages.append(message)
                 if print_messages:
                     print(f"Received message: {message}")
+        return messages
+
+    def infer_protocol(self, duration: int = 10):
+        messages = self.listen(duration, False)
+        """Infers the protocol used by the ECU based on the messages received."""
+        if not messages:
+            print("No messages received. Cannot infer protocol.")
+            return Protocol.UNCLEAR
+        return infer_protocol(messages)

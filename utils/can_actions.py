@@ -4,14 +4,6 @@ import utils.constants as constants
 from sys import stdout
 from utils.iso15765_2 import IsoTp
 
-MESSAGE_DELAY = 0.1
-DELAY_STEP = 0.02
-NOTIFIER_STOP_DURATION = 0.5
-
-# Global CAN interface setting, which can be set through the -i flag to caringcaribou.py
-# The value None corresponds to the default CAN interface (typically can0)
-DEFAULT_INTERFACE = "vcan0"
-
 
 def is_valid_response(message):
     return (len(message.data) >= 2 and message.data[1] in constants.valid_session_control_responses)

@@ -1,6 +1,4 @@
 from utils.can_actions import is_valid_response, send_and_receive
-from utils.common import convert_to_byte_list
-from utils.constants import DID_IDENTIFIERS
 from utils.iso14229_1 import Constants, Iso14229_1, NegativeResponseCodes, Services
 from utils.iso15765_2 import IsoTp
 

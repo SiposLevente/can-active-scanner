@@ -1,5 +1,6 @@
 import argparse
 from can_adapter import CANAdapter
+from utils.can_actions import DEFAULT_INTERFACE
 
 
 if __name__ == "__main__":
@@ -11,10 +12,13 @@ if __name__ == "__main__":
 
     adapter = CANAdapter(
         interface="socketcan",
-        channel="vcan0",
+        channel=DEFAULT_INTERFACE,
         bitrate=500000,
         dbc_file=args.dbc_file
     )
+
+    result = adapter.infer_protocol()
+    print(f"Inferred Protocol: {result}")
 
     adapter.collect_ecus()
     adapter.gather_ecu_info()
