@@ -37,7 +37,7 @@ class IsoTp:
         # Setting default bus to None rather than the actual bus prevents a CanError when
         # called with a virtual CAN bus, while the OS is lacking a working CAN interface
         if bus is None:
-            from utils.can_actions import DEFAULT_INTERFACE
+            from utils.constants import DEFAULT_INTERFACE
             self.bus = can.Bus(DEFAULT_INTERFACE)
         else:
             self.bus = bus
