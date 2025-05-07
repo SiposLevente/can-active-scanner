@@ -1,5 +1,6 @@
 import argparse
 from can_adapter import CANAdapter
+from utils.common import get_car_type
 from utils.constants import DEFAULT_INTERFACE
 
 
@@ -23,4 +24,14 @@ if __name__ == "__main__":
     adapter.collect_ecus()
     adapter.gather_ecu_info()
     adapter.print_ecu_info()
-    adapter.print_data_from_ecus()
+
+    data = adapter.get_data_from_ecus()
+    # find serial number did in data
+    for ecu_data in data:
+        print("{ecu_data[0].client_id}: {ecu_data[0].server_id}")
+        for did_data in ecu_data[1]:
+            if did_data[0] == 0xF18C:
+                print(f"Serial Number: {did_data[1]}")
+                car_type = get_car_type(did_data[1])
+                print(f"Car Type: {car_type}")
+                break

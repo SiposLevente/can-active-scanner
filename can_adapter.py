@@ -10,7 +10,6 @@ from utils import constants
 from utils.can_actions import auto_blacklist, is_valid_response, send_and_receive
 from utils.iso14229_1 import Services
 from utils.iso15765_2 import IsoTp
-from enum import Enum
 
 from utils.protocol_types import infer_protocol
 
@@ -129,6 +128,18 @@ class CANAdapter:
                 print(f"DID {hex(did)}: No response")
 
             print("-" * 20)
+
+    def get_data_from_ecus(self):
+        ecu_data_list = []
+        for ecu in self.ECUs:
+            dids_data = []
+            for did, _ in constants.DID_IDENTIFIERS:
+                data = ecu.get_data_from_ecu(did)
+                dids_data.append((did, data))
+
+            ecu_data = (ecu, dids_data)
+            ecu_data_list.append(ecu_data)
+        return ecu_data_list
 
     # ==========
     # ==========

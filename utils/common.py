@@ -6,9 +6,19 @@ def convert_to_byte_list(did_identifier):
 
 
 def get_car_type(identifier):
+    # First check for exact match
+    if identifier in CAR_TYPE_MAPPING:
+        return CAR_TYPE_MAPPING[identifier]
 
-    # Return the car type based on the identifier
-    return CAR_TYPE_MAPPING.get(identifier, 'Unknown identifier')
+    # If no exact match, check for series prefix match
+    for key in CAR_TYPE_MAPPING:
+        if key.endswith('-series'):
+            prefix = key.replace('-series', '')
+            if identifier.startswith(prefix):
+                return CAR_TYPE_MAPPING[key]
+
+    # If nothing matches
+    return 'Unknown identifier'
 
 
 def parse_int_dec_or_hex(value):

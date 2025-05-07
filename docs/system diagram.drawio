@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1">
+    <mxGraphModel dx="1215" dy="1352" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" value="" style="group" vertex="1" connectable="0">
+          <mxGeometry x="0" y="0" width="827" height="1169" as="geometry"/>
+        </mxCell>
+        <mxCell id="1" value="Start" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#0066CC;" vertex="1" connectable="1">
+          <mxGeometry x="0.4" y="0.1" width="120" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="2" value="Parse command-line arguments" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#0066CC;" vertex="1" connectable="1">
+          <mxGeometry x="0.4" y="0.2" width="160" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="3" value="Initialize CANAdapter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#0066CC;" vertex="1" connectable="1">
+          <mxGeometry x="0.4" y="0.3" width="160" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="4" value="Infer Protocol" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#0066CC;" vertex="1" connectable="1">
+          <mxGeometry x="0.4" y="0.4" width="160" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="5" value="Get ECU Information" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#0066CC;" vertex="1" connectable="1">
+          <mxGeometry x="0.4" y="0.5" width="160" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="6" value="End" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#0066CC;" vertex="1" connectable="1">
+          <mxGeometry x="0.4" y="0.6" width="120" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="7" value="CANAdapter Class" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1E1E1;strokeColor=#0066CC;" vertex="1" connectable="1">
+          <mxGeometry x="0.8" y="0.25" width="160" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="8" value="infer_protocol()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1E1E1;strokeColor=#0066CC;" vertex="1" connectable="1">
+          <mxGeometry x="0.8" y="0.35" width="160" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="9" value="collect_ecus()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1E1E1;strokeColor=#0066CC;" vertex="1" connectable="1">
+          <mxGeometry x="0.8" y="0.45" width="160" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="10" value="gather_ecu_info()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1E1E1;strokeColor=#0066CC;" vertex="1" connectable="1">
+          <mxGeometry x="0.8" y="0.55" width="160" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="11" value="print_ecu_info()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1E1E1;strokeColor=#0066CC;" vertex="1" connectable="1">
+          <mxGeometry x="0.8" y="0.65" width="160" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="12" value="print_data_from_ecus()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1E1E1;strokeColor=#0066CC;" vertex="1" connectable="1">
+          <mxGeometry x="0.8" y="0.75" width="160" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="13" value="CAN Protocol" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#0066CC;" vertex="1" connectable="1">
+          <mxGeometry x="0.6" y="0.2" width="160" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="14" value="ECU Info" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#0066CC;" vertex="1" connectable="1">
+          <mxGeometry x="0.6" y="0.3" width="160" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="15" value="CAN Bus" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#0066CC;" vertex="1" connectable="1">
+          <mxGeometry x="0.6" y="0.4" width="160" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="16" value="Start Protocol Inference" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" source="1" target="2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="17" value="Initialize Adapter" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" source="2" target="3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="18" value="Infer Protocol" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" source="3" target="4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="19" value="Retrieve ECU Data" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" source="4" target="5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="20" value="End Process" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" source="5" target="6">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="21" value="Invoke infer_protocol()" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" source="7" target="8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="22" value="Invoke collect_ecus()" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" source="8" target="9">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="23" value="Invoke gather_ecu_info()" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" source="9" target="10">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="24" value="Invoke print_ecu_info()" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" source="10" target="11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="25" value="Invoke print_data_from_ecus()" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" source="11" target="12">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
