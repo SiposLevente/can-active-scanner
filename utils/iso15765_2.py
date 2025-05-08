@@ -38,7 +38,7 @@ class IsoTp:
         # called with a virtual CAN bus, while the OS is lacking a working CAN interface
         if bus is None:
             from utils.constants import DEFAULT_INTERFACE
-            self.bus = can.Bus(DEFAULT_INTERFACE)
+            self.bus = can.Bus(channel=DEFAULT_INTERFACE, interface="socketcan")
         else:
             self.bus = bus
         self.arb_id_request = arb_id_request
@@ -93,8 +93,11 @@ class IsoTp:
         :return: None
         """
         is_extended = force_extended or arbitration_id > ARBITRATION_ID_MAX
-        msg = can.Message(arbitration_id=arbitration_id,
-                          data=data, is_extended_id=is_extended)
+        msg = can.Message(
+        arbitration_id=arbitration_id,
+        data=data,
+        is_extended_id=False
+        )
         self.bus.send(msg)
 
     def decode_sf(self, frame):

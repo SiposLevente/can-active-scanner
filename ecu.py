@@ -1,4 +1,5 @@
 from utils.can_actions import is_valid_response, send_and_receive
+from utils.common import convert_to_byte_list
 from utils.iso14229_1 import Constants, Iso14229_1, NegativeResponseCodes, Services
 from utils.iso15765_2 import IsoTp
 
@@ -65,7 +66,9 @@ class ECU:
             # Read Data by Identifier (DID) service is supported
 
             # Send request to ECU
-            request = [0x22, did]
+            
+            request = [0x22]
+            request.extend(convert_to_byte_list(did))
             with IsoTp(arb_id_request=self.client_id, arb_id_response=self.server_id) as tp:
                 tp.send_request(request)
 

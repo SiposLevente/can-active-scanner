@@ -14,7 +14,7 @@ NOTIFIER_STOP_DURATION = 0.5
 
 # Global CAN interface setting, which can be set through the -i flag to caringcaribou.py
 # The value None corresponds to the default CAN interface (typically can0)
-DEFAULT_INTERFACE = "vcan0"
+DEFAULT_INTERFACE = "can0"
 
 VALID_SESSION_CONTROL_RESPONSES = [0x50, 0x7F]
 
