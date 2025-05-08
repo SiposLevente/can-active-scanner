@@ -110,11 +110,11 @@ class CANAdapter:
         for ecu in self.ECUs:
             print(
                 f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
-            print("Discovering sessions...", end=" ")
+            print("Discovering sessions...", end="", flush=True)
             ecu.discover_sessions(channel=self.channel)
             print("done!")
 
-            print("Discovering services...", end=" ")
+            print("Discovering services...", end="", flush=True)
             ecu.discover_services(channel=self.channel)
             print("done!")
             print("-" * 20)
