@@ -56,13 +56,23 @@ class CANAdapter:
 
             # Prepare session control frame
             send_arb_id = min_id - 1
+            total_ids = max_id - min_id + 1
+            scanned_ids = 0
+
             if print_results:
                 print(
                     f"Scanning for ECUs from 0x{(send_arb_id+1):04X} to 0x{max_id:04X}...")
 
             while send_arb_id < max_id:
                 send_arb_id += 1
-                # Send Diagnostic Session Control
+                scanned_ids += 1
+
+                # Print progress
+                if print_results:
+                    progress = (scanned_ids / total_ids) * 100
+                    print(
+                        f"Progress: {progress:.2f}% ({scanned_ids}/{total_ids})")
+
                 response_msg = send_and_receive(
                     tp, session_control_data, send_arb_id, timeout=delay)
 
@@ -215,6 +225,6 @@ class CANAdapter:
         uds_phys = probe_uds_physical(self.bus)
 
         result = conclude_protocol(iso_tp, uds_func, uds_phys, diag_ids)
-        print(f"\n[RESULT] Most likely protocol: {result}")
+        print(f"\n[RESULT] Most likely protocol: {result.value}")
 
         return result
