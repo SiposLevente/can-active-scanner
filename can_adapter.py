@@ -1,17 +1,17 @@
 
 import time
-from typing import Counter, List, Protocol
+from typing import List
 
 import can
 import cantools
 
 from ecu import ECU
 from utils import constants
-from utils.can_actions import auto_blacklist, is_valid_response, send_and_receive
+from utils.can_actions import auto_blacklist, is_valid_response, send_and_receive, sniff_can
 from utils.iso14229_1 import Services
 from utils.iso15765_2 import IsoTp
 
-from utils.protocol_types import infer_protocol
+from utils.protocol_types import conclude_protocol, probe_uds_functional, probe_uds_physical
 
 
 class CANAdapter:
@@ -206,10 +206,15 @@ class CANAdapter:
                     print(f"Received message: {message}")
         return messages
 
-    def infer_protocol(self, duration: int = 10):
-        messages = self.listen(duration, False)
-        """Infers the protocol used by the ECU based on the messages received."""
-        if not messages:
-            print("No messages received. Cannot infer protocol.")
-            return Protocol.UNCLEAR
-        return infer_protocol(messages)
+    def infer_protocol(self):
+        print(f"Starting protocol detection on {self.channel}...")
+
+        iso_tp, diag_ids = sniff_can(self.bus, duration=6)
+
+        uds_func = probe_uds_functional(self.bus)
+        uds_phys = probe_uds_physical(self.bus)
+
+        result = conclude_protocol(iso_tp, uds_func, uds_phys, diag_ids)
+        print(f"\n[RESULT] Most likely protocol: {result}")
+
+        return result

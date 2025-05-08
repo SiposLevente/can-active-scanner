@@ -19,8 +19,8 @@ if __name__ == "__main__":
         dbc_file=args.dbc_file
     )
 
-    # result = adapter.infer_protocol()
-    # print(f"Inferred Protocol: {result}")
+    result = adapter.infer_protocol()
+    print(f"Inferred Protocol: {result}")
 
     adapter.collect_ecus()
     print("=" * 20)

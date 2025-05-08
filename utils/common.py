@@ -23,5 +23,4 @@ def get_car_type(identifier: bytearray) -> str:
             prefix = key.replace('-series', '')
             if prefix in identifier_str:
                 return CAR_TYPE_MAPPING[key]
-
     return "Unknown"

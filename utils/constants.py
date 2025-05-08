@@ -8,6 +8,10 @@ BYTE_MAX = 0xFF
 
 VALID_SESSION_CONTROL_RESPONSES = [0x50, 0x7F]
 
+UDS_BROADCAST_ID = 0x7DF
+PHYSICAL_ID_RANGE = range(0x500, 0x7ff)
+RESPONSE_ID_RANGE = range(0x500, 0x7ff)
+
 CAR_TYPE_MAPPING = {
     '5WA': 'Volkswagen AG (Volkswagen, Audi, Skoda, SEAT)',
     '5FA': 'Volkswagen AG (Volkswagen, Audi, Skoda, SEAT)',
