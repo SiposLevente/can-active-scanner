@@ -125,7 +125,6 @@ class CANAdapter:
                 data = ecu.get_data_from_ecu(did)
                 if data is not None:
                     print(f"DID {hex(did)}: {data}")
-                print(f"DID {hex(did)}: No response")
 
             print("-" * 20)
 

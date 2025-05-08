@@ -66,7 +66,7 @@ class ECU:
             # Read Data by Identifier (DID) service is supported
 
             # Send request to ECU
-            
+
             request = [0x22]
             request.extend(convert_to_byte_list(did))
             with IsoTp(arb_id_request=self.client_id, arb_id_response=self.server_id) as tp:
@@ -79,11 +79,8 @@ class ECU:
 
                 # Parse response
                 if len(msg.data) > 3:
-                    response_did = msg.data[1]
                     data_length = msg.data[2]
                     data = msg.data[3:3 + data_length]
-                    print(
-                        f"DID {hex(response_did)}: {data}")
                     return data
 
     def get_sessions(self):
