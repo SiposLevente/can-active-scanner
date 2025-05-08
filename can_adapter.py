@@ -58,7 +58,7 @@ class CANAdapter:
             send_arb_id = min_id - 1
             if print_results:
                 print(
-                    f"Scanning for ECUs from 0x{send_arb_id:04X} to 0x{max_id:04X}...")
+                    f"Scanning for ECUs from 0x{(send_arb_id+1):04X} to 0x{max_id:04X}...")
 
             while send_arb_id < max_id:
                 send_arb_id += 1

@@ -13,12 +13,11 @@ def send_request(bus, arbitration_id, data):
                       is_extended_id=False)
     try:
         bus.send(msg)
-        print(f"[>] Sent to {hex(arbitration_id)}: {msg.data.hex()}")
     except can.CanError:
         print("[-] CAN send error")
 
 
-def listen_for_response(bus, expected_ids, timeout=1.0):
+def listen_for_response(bus, expected_ids, timeout=0.1):
     start = time.time()
     while time.time() - start < timeout:
         msg = bus.recv(timeout)
@@ -43,9 +42,7 @@ def sniff_can(bus, duration=5):
             seen_ids.add(aid)
             data = msg.data
 
-            print(f"Sniffed: ID {hex(aid)} DL:{msg.dlc} Data: {data.hex()}")
-
-            if aid >= 0x700 or aid in range(0x500, 0x700):
+            if aid >= 0x700 or aid in range(0x000, 0x800):
                 diagnostic_ids_seen.add(aid)
 
             if len(data) > 0:
