@@ -20,13 +20,16 @@ def probe_uds_functional(bus):
 
 
 def probe_uds_physical(bus):
-    print("\n[+] Probing UDS physical addressing (0x500–0x73F)...")
+    print("\n[+] Probing UDS physical addressing (0x500–0x7FF)...")
     request = [0x02, 0x10, 0x01] + [0x00] * 5
-    for aid in constants.PHYSICAL_ID_RANGE:
+    for index, aid in enumerate(constants.PHYSICAL_ID_RANGE, start=1):
+        print(
+            f"\r[~] Probing AID {hex(aid)} ({index}/{len(constants.PHYSICAL_ID_RANGE)})...", end="")
         send_request(bus, aid, request)
         if listen_for_response(bus, [aid], timeout=0.3):
-            print(f"[+] Response from {hex(aid)}")
+            print(f"\r[+] Response from {hex(aid)}")
             return True
+    print("\r[✗] No response detected in physical addressing range.")
     return False
 
 
