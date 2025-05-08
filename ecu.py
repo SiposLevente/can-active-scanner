@@ -20,17 +20,12 @@ class ECU:
         with IsoTp(None, None) as tp:
             resp = send_and_receive(
                 tp, session_control_data, self.client_id, timeout=0.1)
-            if resp and is_valid_response(resp):
-                print("Entered Default Session (0x01) successfully.")
 
             for session in range(0x02, 0x0F):  # Check sessions from 0x02 to 0x0F
-                print(f"Requesting Session {hex(session)}")
-
                 resp = send_and_receive(
                     tp, [diagnostic_session_control.service_id, session], self.client_id, timeout=0.1)
 
                 if resp and is_valid_response(resp):
-                    print(f"Session {hex(session)} is supported.")
                     self.sessions.append(session)
 
             resp = send_and_receive(

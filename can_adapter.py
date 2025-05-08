@@ -56,11 +56,12 @@ class CANAdapter:
 
             # Prepare session control frame
             send_arb_id = min_id - 1
+            if print_results:
+                print(
+                    f"Scanning for ECUs from 0x{send_arb_id} to 0x{max_id}...")
+
             while send_arb_id < max_id:
                 send_arb_id += 1
-                if print_results:
-                    print(
-                        f"\rSending Diagnostic Session Control to 0x{send_arb_id:04x}", end="")
                 # Send Diagnostic Session Control
                 response_msg = send_and_receive(
                     tp, session_control_data, send_arb_id, timeout=delay)
@@ -70,6 +71,9 @@ class CANAdapter:
                 if response_msg.arbitration_id in blacklist:
                     continue
                 if is_valid_response(response_msg):
+                    if print_results:
+                        print(
+                            f"Sending Diagnostic Session Control to 0x{send_arb_id:04x}")
                     if verify:
                         # Verification logic
                         verified = False
@@ -77,7 +81,7 @@ class CANAdapter:
                             response_msg.arbitration_id)
                         if print_results:
                             print(
-                                f"\nVerifying response from 0x{send_arb_id:04x}")
+                                f"Verifying response from 0x{send_arb_id:04x}")
                         for verify_arb_id in range(send_arb_id, send_arb_id - 10, -1):
                             if print_results:
                                 print(
@@ -104,8 +108,17 @@ class CANAdapter:
 
     def gather_ecu_info(self):
         for ecu in self.ECUs:
+            print(
+                f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
+            print("Discovering sessions...", end=" ")
             ecu.discover_sessions()
+            print("done!")
+
+            print("Discovering services...", end=" ")
             ecu.discover_services()
+            print("done!")
+            print("-" * 20)
+        print("=" * 20)
 
     def print_ecu_info(self):
         for ecu in self.ECUs:
@@ -134,13 +147,14 @@ class CANAdapter:
     def get_data_from_ecus(self):
         ecu_data_list = []
         for ecu in self.ECUs:
-            dids_data = []
-            for did, _ in constants.DID_IDENTIFIERS:
-                data = ecu.get_data_from_ecu(did)
-                dids_data.append((did, data))
+            if 0x22 in ecu.services:
+                dids_data = []
+                for did, _ in constants.DID_IDENTIFIERS:
+                    data = ecu.get_data_from_ecu(did)
+                    dids_data.append((did, data))
 
-            ecu_data = (ecu, dids_data)
-            ecu_data_list.append(ecu_data)
+                ecu_data = (ecu, dids_data)
+                ecu_data_list.append(ecu_data)
         return ecu_data_list
 
     # ==========

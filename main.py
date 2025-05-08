@@ -1,5 +1,7 @@
 import argparse
+from typing import List
 from can_adapter import CANAdapter
+from ecu import ECU
 from utils.common import get_car_type
 
 
@@ -23,18 +25,19 @@ if __name__ == "__main__":
     # print(f"Inferred Protocol: {result}")
 
     adapter.collect_ecus()
+    print("=" * 20)
     adapter.gather_ecu_info()
     adapter.print_ecu_info()
 
     adapter.print_data_from_ecus()
 
-    # data = adapter.get_data_from_ecus()
-    # # find serial number did in data
-    # for ecu_data in data:
-    #     print(f"Client ID: {ecu_data[0].client_id}, Server ID: {ecu_data[0].server_id}")
-    #     for did_data in ecu_data[1]:
-    #         if did_data[0] == 0xF18C:
-    #             print(f"Serial Number: {did_data[1]}")
-    #             car_type = get_car_type(did_data[1])
-    #             print(f"Car Type: {car_type}")
-    #             break
+    # type list of (ecu, (did, data))
+    data = adapter.get_data_from_ecus()
+    for ecu, ecu_data_list in data:
+        for did, data in ecu_data_list:
+            if did == 0xF187:
+                print(
+                    f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
+                print(f"DID: {hex(did)}, Data: {data.hex()}")
+                car_type = get_car_type(data)
+                print(f"Car Type: {car_type}")
