@@ -1,4 +1,4 @@
-from utils.constants import ARBITRATION_ID_MAX
+from utils.constants import ARBITRATION_ID_MAX, ARBITRATION_ID_MAX_EXTENDED
 import can
 import time
 
@@ -36,8 +36,7 @@ class IsoTp:
         # Setting default bus to None rather than the actual bus prevents a CanError when
         # called with a virtual CAN bus, while the OS is lacking a working CAN interface
         if bus is None:
-            from utils.constants import DEFAULT_INTERFACE
-            self.bus = can.Bus(channel=DEFAULT_INTERFACE,
+            self.bus = can.Bus(channel="vcan0",
                                interface="socketcan")
         else:
             self.bus = bus
@@ -250,3 +249,9 @@ class IsoTp:
                     bytes_copied = bytes_copied + 1
                 frame_list.append(frame)
         return frame_list
+
+    def set_filter_single_arbitration_id(self, arbitration_id):
+        """Set a filter to only receive incoming messages on 'arbitration_id'"""
+        arbitration_id_filter = [
+            {"can_id": arbitration_id, "can_mask": ARBITRATION_ID_MAX_EXTENDED}]
+        self._set_filters(arbitration_id_filter)

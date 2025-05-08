@@ -12,9 +12,6 @@ if __name__ == "__main__":
                         help="CAN interface channel (default: can0)")
     args = parser.parse_args()
 
-    global DEFAULT_INTERFACE
-    DEFAULT_INTERFACE = args.channel
-
     adapter = CANAdapter(
         interface="socketcan",
         channel=args.channel,
