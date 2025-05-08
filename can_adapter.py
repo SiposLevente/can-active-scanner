@@ -135,7 +135,7 @@ class CANAdapter:
             print(
                 f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
             if 0x22 in ecu.services:
-                for did, _ in constants.DID_IDENTIFIERS:
+                for did in constants.DID_IDENTIFIERS:
                     data = ecu.get_data_from_ecu(did)
                     if data is not None:
                         print(f"DID {hex(did)}: {data}")
@@ -149,7 +149,7 @@ class CANAdapter:
         for ecu in self.ECUs:
             if 0x22 in ecu.services:
                 dids_data = []
-                for did, _ in constants.DID_IDENTIFIERS:
+                for did in constants.DID_IDENTIFIERS:
                     data = ecu.get_data_from_ecu(did)
                     dids_data.append((did, data))
 

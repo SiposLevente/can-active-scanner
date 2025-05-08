@@ -1,6 +1,5 @@
-from utils.constants import ARBITRATION_ID_MAX_EXTENDED, ARBITRATION_ID_MAX
+from utils.constants import ARBITRATION_ID_MAX
 import can
-import datetime
 import time
 
 
@@ -38,7 +37,8 @@ class IsoTp:
         # called with a virtual CAN bus, while the OS is lacking a working CAN interface
         if bus is None:
             from utils.constants import DEFAULT_INTERFACE
-            self.bus = can.Bus(channel=DEFAULT_INTERFACE, interface="socketcan")
+            self.bus = can.Bus(channel=DEFAULT_INTERFACE,
+                               interface="socketcan")
         else:
             self.bus = bus
         self.arb_id_request = arb_id_request
@@ -73,12 +73,6 @@ class IsoTp:
         """
         self.bus.set_filters(filters)
 
-    def set_filter_single_arbitration_id(self, arbitration_id):
-        """Set a filter to only receive incoming messages on 'arbitration_id'"""
-        arbitration_id_filter = [
-            {"can_id": arbitration_id, "can_mask": ARBITRATION_ID_MAX_EXTENDED}]
-        self._set_filters(arbitration_id_filter)
-
     def clear_filters(self):
         """Remove arbitration ID filters"""
         self._set_filters(None)
@@ -94,56 +88,11 @@ class IsoTp:
         """
         is_extended = force_extended or arbitration_id > ARBITRATION_ID_MAX
         msg = can.Message(
-        arbitration_id=arbitration_id,
-        data=data,
-        is_extended_id=False
+            arbitration_id=arbitration_id,
+            data=data,
+            is_extended_id=False
         )
         self.bus.send(msg)
-
-    def decode_sf(self, frame):
-        """
-        Decodes a singe frame (SF) message
-
-        :param frame: Frame to decode
-        :return: Tuple of single frame data length (SF_DL) and data if valid,
-                 Tuple of None, None otherwise
-        """
-        if len(frame) >= self.SF_PCI_LENGTH:
-            sf_dl = frame[0] & 0xF
-            data = frame[1:]
-            return sf_dl, list(data)
-        else:
-            return None, None
-
-    def decode_ff(self, frame):
-        """
-        Decodes a first frame (FF) message
-
-        :param frame: Frame to decode
-        :return: Tuple of first frame data length (FF_DL) and data if valid,
-                 Tuple of None, None otherwise
-        """
-        if len(frame) >= self.FF_PCI_LENGTH:
-            ff_dl = ((frame[0] & 0xF) << 8) | frame[1]
-            data = frame[2:]
-            return ff_dl, list(data)
-        else:
-            return None, None
-
-    def decode_cf(self, frame):
-        """
-        Decodes a consecutive frame (CF) message
-
-        :param frame: Frame to decode
-        :return: Tuple of sequence number (SN) and data if valid,
-                 Tuple of None, None otherwise
-        """
-        if len(frame) >= self.CF_PCI_LENGTH:
-            sn = frame[0] & 0xF
-            data = frame[1:]
-            return sn, list(data)
-        else:
-            return None, None
 
     def decode_fc(self, frame):
         """
@@ -161,17 +110,6 @@ class IsoTp:
         else:
             return None, None, None
 
-    def encode_fc(self, flow_status, block_size, st_min):
-        """
-        Encodes a flow control (FC) message
-
-        :param flow_status: Flow status (FS)
-        :param block_size: Block size (BS)
-        :param st_min: Separation time minimum (STmin)
-        :return: Encoded data for the flow control message
-        """
-        return [(self.FC_FRAME_ID << 4) | flow_status, block_size, st_min, 0, 0, 0, 0, 0]
-
     def send_request(self, message):
         """
         Wrapper for sending 'message' as a request
@@ -182,99 +120,6 @@ class IsoTp:
         frames = self.get_frames_from_message(
             message, padding_value=self.padding_value)
         self.transmit(frames, self.arb_id_request, self.arb_id_response)
-
-    def send_response(self, message):
-        """
-        Wrapper for sending 'message' as a response
-
-        :param message: The message to send
-        :return: None
-        """
-        frames = self.get_frames_from_message(
-            message, padding_value=self.padding_value)
-        self.transmit(frames, self.arb_id_response, self.arb_id_request)
-
-    def indication(self, wait_window=None, trim_padding=True, first_frame_only=False):
-        """
-        Receives an ISO-15765-2 message (one or more frames) and returns its content.
-
-        :param wait_window: Max time (in seconds) to wait before timeout
-        :param trim_padding: If True, removes message padding bytes from the received message
-        :param first_frame_only: If True, return first frame only (simulating overflow behavior for multi-frame message)
-        :return: A list of received data bytes if successful, None otherwise
-        """
-        message = []
-
-        if wait_window is None:
-            wait_window = self.N_BS_TIMEOUT
-        start_time = datetime.datetime.now()
-        end_time = start_time + datetime.timedelta(seconds=wait_window)
-        sn = 0
-        message_length = 0
-
-        while True:
-            # Timeout check
-            current_time = datetime.datetime.now()
-            if current_time >= end_time:
-                # Timeout
-                return None
-            # Receive frame
-            msg = self.bus.recv(wait_window)
-            if msg is not None:
-                if msg.arbitration_id == self.arb_id_request:
-                    flow_control_arbitration_id = self.arb_id_response
-                elif msg.arbitration_id == self.arb_id_response:
-                    flow_control_arbitration_id = self.arb_id_request
-                else:
-                    # Unknown arbitration ID - ignore message
-                    continue
-                frame = msg.data
-                if len(frame) > 0:
-                    frame_type = (frame[0] >> 4) & 0xF
-                    if frame_type == self.SF_FRAME_ID:
-                        # Single frame (SF)
-                        dl, message = self.decode_sf(frame)
-                        if trim_padding:
-                            # Trim padding, in case the data exceeds single frame data length (SF_DL)
-                            message = message[:dl]
-                        break
-                    elif frame_type == self.FF_FRAME_ID:
-                        # First frame (FF) of a multi-frame message
-                        message_length, message = self.decode_ff(frame)
-                        if first_frame_only:
-                            # This is a hack to make it possible to only retrieve the first frame of a multi-frame
-                            # response, by telling the sender to stop sending data due to overflow
-                            ovflw_frame = self.encode_fc(
-                                self.FC_FS_OVFLW, 0, 0)
-                            # Respond with overflow (OVFLW) message
-                            self.send_message(
-                                ovflw_frame, flow_control_arbitration_id)
-                            # Return the first frame only
-                            break
-                        fc_frame = self.encode_fc(self.FC_FS_CTS, 0, 0)
-                        sn = 0
-                        # Respond with flow control (FC) message
-                        self.send_message(
-                            fc_frame, flow_control_arbitration_id)
-                    elif frame_type == self.CF_FRAME_ID:
-                        # Consecutive frame (CF)
-                        new_sn, data = self.decode_cf(frame)
-                        if (sn + 1) % 16 == new_sn:
-                            sn = new_sn
-                            message += data
-                            if len(message) >= message_length:
-                                # Last frame received
-                                if trim_padding:
-                                    # Trim padding of last frame, which may exceed first frame data length (FF_DL)
-                                    message = message[:message_length]
-                                # Stop listening for more frames
-                                break
-                            else:
-                                pass
-                    else:
-                        # Invalid frame type
-                        return None
-        return list(message)
 
     def transmit(self, frames, arbitration_id, arbitration_id_flow_control):
         """
