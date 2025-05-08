@@ -44,7 +44,7 @@ class CANAdapter:
         session_control_data = [service_id, sub_function]
 
         # Example IsoTp instance
-        with IsoTp(None, None) as tp:
+        with IsoTp(None, None, channel=self.channel) as tp:
             blacklist = set(blacklist_args)
             # Perform automatic blacklist scan
             if auto_blacklist_duration > 0:
@@ -111,11 +111,11 @@ class CANAdapter:
             print(
                 f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
             print("Discovering sessions...", end=" ")
-            ecu.discover_sessions()
+            ecu.discover_sessions(channel=self.channel)
             print("done!")
 
             print("Discovering services...", end=" ")
-            ecu.discover_services()
+            ecu.discover_services(channel=self.channel)
             print("done!")
             print("-" * 20)
         print("=" * 20)

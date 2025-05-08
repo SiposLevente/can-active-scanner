@@ -11,13 +11,13 @@ class ECU:
         self.sessions = []
         self.services = []
 
-    def discover_sessions(self):
+    def discover_sessions(self, channel=None):
         diagnostic_session_control = Services.DiagnosticSessionControl
         service_id = diagnostic_session_control.service_id
         sub_function = diagnostic_session_control.DiagnosticSessionType.DEFAULT_SESSION
         session_control_data = [service_id, sub_function]
 
-        with IsoTp(None, None) as tp:
+        with IsoTp(None, None, channel=channel) as tp:
             resp = send_and_receive(
                 tp, session_control_data, self.client_id, timeout=0.1)
 
@@ -31,8 +31,8 @@ class ECU:
             resp = send_and_receive(
                 tp, session_control_data, self.client_id, timeout=0.1)
 
-    def discover_services(self, timeout: int = 0.1):
-        with IsoTp(arb_id_request=self.client_id, arb_id_response=self.server_id) as tp:
+    def discover_services(self, timeout: int = 0.1, channel=None):
+        with IsoTp(arb_id_request=self.client_id, arb_id_response=self.server_id, channel=channel) as tp:
             tp.set_filter_single_arbitration_id(self.server_id)
             for service_id in range(0, 0xff):
                 tp.send_request([service_id])

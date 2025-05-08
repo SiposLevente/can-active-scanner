@@ -32,11 +32,11 @@ class IsoTp:
     MAX_FRAME_LENGTH = 8
     MAX_MESSAGE_LENGTH = 4095
 
-    def __init__(self, arb_id_request, arb_id_response, bus=None, padding_value=0x00):
+    def __init__(self, arb_id_request, arb_id_response, bus=None, padding_value=0x00, channel=None):
         # Setting default bus to None rather than the actual bus prevents a CanError when
         # called with a virtual CAN bus, while the OS is lacking a working CAN interface
         if bus is None:
-            self.bus = can.Bus(channel="vcan0",
+            self.bus = can.Bus(channel=channel,
                                interface="socketcan")
         else:
             self.bus = bus
