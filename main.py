@@ -1,7 +1,5 @@
 import argparse
-from typing import List
 from can_adapter import CANAdapter
-from ecu import ECU
 from utils.common import get_car_type
 
 
@@ -11,8 +9,11 @@ if __name__ == "__main__":
     parser.add_argument("--duration", type=int, default=5,
                         help="Time to listen to CAN traffic")
     parser.add_argument("--channel", default="can0",
-                        help="CAN interface channel (default: vcan0)")
+                        help="CAN interface channel (default: can0)")
     args = parser.parse_args()
+
+    global DEFAULT_INTERFACE
+    DEFAULT_INTERFACE = args.channel
 
     adapter = CANAdapter(
         interface="socketcan",
