@@ -56,6 +56,23 @@ DID_IDENTIFIERS = {
     0xF19E: "ODX file"
 }
 
+SECURITY_ACCESS_SUBFUNCTIONS = {
+    0x01: "Request Seed - Level 1",
+    0x02: "Send Key - Level 1",
+    0x03: "Request Seed - Level 2",
+    0x04: "Send Key - Level 2",
+    0x05: "Request Seed - Level 3",
+    0x06: "Send Key - Level 3",
+    0x07: "Request Seed - Level 4",
+    0x08: "Send Key - Level 4",
+    0x09: "Request Seed - Level 5",
+    0x0A: "Send Key - Level 5",
+    0x0B: "Request Seed - Level 6",
+    0x0C: "Send Key - Level 6",
+    0x0D: "Request Seed - Level 7",
+    0x0E: "Send Key - Level 7"
+}
+
 UDS_SERVICE_NAMES = {
     0x10: "DIAGNOSTIC_SESSION_CONTROL",
     0x11: "ECU_RESET",

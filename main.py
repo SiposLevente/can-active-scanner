@@ -3,6 +3,17 @@ from can_adapter import CANAdapter
 from utils.common import get_car_type
 
 
+def get_part_type(data):
+    for ecu, ecu_data_list in data:
+        for did, data in ecu_data_list:
+            if did == 0xF187:
+                print(
+                    f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
+                print(f"DID: {hex(did)}, Data: {data.hex()}")
+                car_type = get_car_type(data)
+                print(f"Part Type: {car_type}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CAN UDS Prober")
     parser.add_argument("--dbc-file", help="Path to the DBC file (optional)")
@@ -28,18 +39,14 @@ if __name__ == "__main__":
     adapter.print_ecu_info()
     print("=" * 20)
 
-    adapter.print_data_from_ecus()
+    adapter.print_data_from_ecus_by_identifer()
     print("=" * 20)
 
-    # type list of (ecu, (did, data))
-    data = adapter.get_data_from_ecus()
-    for ecu, ecu_data_list in data:
-        for did, data in ecu_data_list:
-            if did == 0xF187:
-                print(
-                    f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
-                print(f"DID: {hex(did)}, Data: {data.hex()}")
-                car_type = get_car_type(data)
-                print(f"Car Type: {car_type}")
+    # type list of List[(ecu, List(did, data))]
+    data_by_identifier = adapter.get_data_from_ecus_by_identifer()
+    get_part_type(data_by_identifier)
+
+    sec_seed = adapter.get_security_access(level=1, channel=args.channel)
+    print(f"Level 1 Security Seed: {sec_seed}")
 
     adapter.shutdown()

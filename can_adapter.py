@@ -126,40 +126,53 @@ class CANAdapter:
                     f"\tSession ID: 0x{session.session_id:02X}\tServices: {[hex(service) for service in session.services]}")
             print("-" * 20)
 
-    def print_data_from_ecus(self):
+    def print_data_from_ecus_by_identifer(self):
         for ecu in self.ECUs:
             print(
                 f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
             for session in ecu.sessions:
                 if ServiceID.READ_DATA_BY_IDENTIFIER in session.services:
                     print(f"\tSession ID: 0x{session.session_id:02X}")
-                    ecu.switch_to_session(
-                        session.session_id, channel=self.channel)
                     for did in constants.DID_IDENTIFIERS:
-                        data = ecu.get_data_from_ecu(
+                        data = ecu.get_data_from_ecu_by_identifier(
                             did, self.channel, session.session_id)
                         if data is not None:
                             print(f"\t\tDID {hex(did)}: {data}")
                     break
             print("-" * 20)
 
-    def get_data_from_ecus(self):
+    def get_data_from_ecus_by_identifer(self):
         ecu_data_list = []
         for ecu in self.ECUs:
             ecu_sessions_data = []
             for session in ecu.sessions:
                 if ServiceID.READ_DATA_BY_IDENTIFIER in session.services:
-                    ecu.switch_to_session(
-                        session.session_id, channel=self.channel)
                     session_data = []
                     for did in constants.DID_IDENTIFIERS:
-                        data = ecu.get_data_from_ecu(
+                        data = ecu.get_data_from_ecu_by_identifier(
                             did, self.channel, session.session_id)
                         session_data.append((did, data))
                     ecu_sessions_data.append(
                         (session.session_id, session_data))
             ecu_data_list.append((ecu, ecu_sessions_data))
         return ecu_data_list
+
+    def get_security_access(self, sec_level: int):
+        if sec_level not in range(1, 8):
+            print(f"Invalid security access level: {sec_level}")
+            return None
+        sec_level = sec_level*2-1
+
+        data = None
+        for ecu in self.ECUs:
+            needed_session = ecu.find_session_with_service(
+                ServiceID.SECURITY_ACCESS, channel=self.channel)
+            if needed_session is None:
+                continue
+            data = ecu.request_seed_security_access(
+                sec_level, channel=self.channel)
+
+        return data
 
     def shutdown(self):
         if self.bus:

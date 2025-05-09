@@ -216,9 +216,6 @@ class Iso14229_1(object):
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
-
     @staticmethod
     def get_service_response_id(request_id):
         """

@@ -71,16 +71,9 @@ class ECU:
             self.switch_to_session(
                 Services.DiagnosticSessionControl.DiagnosticSessionType.DEFAULT_SESSION, tp)
 
-    def get_data_from_ecu(self, did: int, channel=None):
-        needed_session = None
-        # find which session has the service 0x22
-        for session in self.sessions:
-            if ServiceID.READ_DATA_BY_IDENTIFIER in session.services:
-                needed_session = session.session_id
-                break
-        if needed_session is None:
-            print("No session with service 0x22 found")
-            return None
+    def get_data_from_ecu_by_identifier(self, did: int, channel=None):
+        needed_session = self.find_session_with_service(
+            Services.ReadDataByIdentifier.service_id)
 
         with IsoTp(None, None, channel=channel) as tp:
             self.switch_to_session(needed_session, tp)
@@ -101,9 +94,37 @@ class ECU:
                 data = msg.data[3:3 + data_length]
                 return data
 
+    def request_seed_security_access(self, level: int, channel=None):
+        needed_session = self.find_session_with_service(
+            Services.SecurityAccess.service_id)
+        if needed_session is None:
+            return None
+
+        # Send request to ECU
+        request = [ServiceID.SECURITY_ACCESS, level]
+
+        with IsoTp(None, None, channel=channel) as tp:
+            self.switch_to_session(needed_session, tp)
+            tp.send_request(request)
+            # Get response
+            msg = tp.bus.recv(0.1)
+            if msg is None:
+                return None
+            # Parse response
+            if len(msg.data) > 3:
+                data_length = msg.data[2]
+                data = msg.data[3:3 + data_length]
+                return data
+
     def switch_to_session(self, session_id: int, tp: IsoTp):
         return send_and_receive(
             tp, [Services.DiagnosticSessionControl.service_id, session_id], self.client_id, timeout=0.1)
+
+    def find_session_with_service(self, service_id: int):
+        for session in self.sessions:
+            if service_id in session.services:
+                return session.session_id
+        return None
 
     def get_sessions(self):
         return self.sessions
