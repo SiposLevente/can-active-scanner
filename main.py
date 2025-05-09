@@ -46,7 +46,7 @@ if __name__ == "__main__":
     data_by_identifier = adapter.get_data_from_ecus_by_identifer()
     get_part_type(data_by_identifier)
 
-    sec_seed = adapter.get_security_access(level=1, channel=args.channel)
+    sec_seed = adapter.get_security_access(sec_level=1)
     print(f"Level 1 Security Seed: {sec_seed}")
 
     adapter.shutdown()
