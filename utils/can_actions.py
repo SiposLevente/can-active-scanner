@@ -60,8 +60,8 @@ def sniff_can(bus, duration=5):
     return iso_tp_detected, diagnostic_ids_seen
 
 
-def is_valid_response(message):
-    return (len(message.data) >= 2 and message.data[1] in constants.VALID_SESSION_CONTROL_RESPONSES)
+def is_valid_response(message, sent_service_id):
+    return (len(message.data) >= 2 and message.data[1] == sent_service_id + constants.VALUE_TO_ADD_FOR_SUCCESSFUL_RESPONSE)
 
 
 def send_and_receive(tp: IsoTp, msg: list, send_arb_id: int, timeout: float = 0.1):
@@ -72,6 +72,6 @@ def send_and_receive(tp: IsoTp, msg: list, send_arb_id: int, timeout: float = 0.
         msg = tp.bus.recv(0)
         if msg is None:
             continue
-        if is_valid_response(msg):
+        if is_valid_response(msg, msg[1]):
             return msg
     return None

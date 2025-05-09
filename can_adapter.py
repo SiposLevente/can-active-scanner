@@ -8,7 +8,7 @@ import cantools
 from ecu import ECU
 from utils import constants
 from utils.can_actions import is_valid_response, send_and_receive, sniff_can
-from utils.iso14229_1 import Services
+from utils.iso14229_1 import ServiceID, Services
 from utils.iso15765_2 import IsoTp
 
 from utils.protocol_types import conclude_protocol, probe_uds_functional, probe_uds_physical
@@ -67,7 +67,7 @@ class CANAdapter:
 
                 if response_msg is None:
                     continue
-                if is_valid_response(response_msg):
+                if is_valid_response(response_msg, service_id):
                     if print_results:
                         print(
                             f"\rSending Diagnostic Session Control to 0x{send_arb_id:04x}")
@@ -85,7 +85,7 @@ class CANAdapter:
                                     f"Resending 0x{verify_arb_id:04x}...", end="")
                             verification_msg = send_and_receive(
                                 tp, session_control_data, verify_arb_id, timeout=delay + 0.1)
-                            if verification_msg and is_valid_response(verification_msg):
+                            if verification_msg and is_valid_response(verification_msg, service_id):
                                 verified = True
                                 send_arb_id = verify_arb_id
                                 break
@@ -121,37 +121,45 @@ class CANAdapter:
         for ecu in self.ECUs:
             print(
                 f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
-            print(
-                f"Sessions: {[hex(session) for session in ecu.get_sessions()]}")
-            print(
-                f"Services: {[hex(service) for service in ecu.get_services()]}")
+            print("Sessions:")
+            for session in ecu.sessions:
+                print(f"\tSession ID: 0x{session.session_id:02X}")
+                print(
+                    f"\t\tServices: {[hex(service) for service in session.services]}")
             print("-" * 20)
 
     def print_data_from_ecus(self):
         for ecu in self.ECUs:
             print(
                 f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
-            if 0x22 in ecu.services:
-                for did in constants.DID_IDENTIFIERS:
-                    data = ecu.get_data_from_ecu(did)
-                    if data is not None:
-                        print(f"DID {hex(did)}: {data}")
-            else:
-                print("Read Data by Identifier (DID) service is not supported.")
-
-            print("-" * 20)
+            for session in ecu.sessions:
+                print(f"\tSession ID: 0x{session.session_id:02X}")
+                if ServiceID.READ_DATA_BY_IDENTIFIER in session.services:
+                    ecu.switch_to_session(
+                        session.session_id, channel=self.channel)
+                    for did in constants.DID_IDENTIFIERS:
+                        data = ecu.get_data_from_ecu(
+                            did, self.channel, session.session_id)
+                        if data is not None:
+                            print(f"\t\tDID {hex(did)}: {data}")
+        print("-" * 20)
 
     def get_data_from_ecus(self):
         ecu_data_list = []
         for ecu in self.ECUs:
-            if 0x22 in ecu.services:
-                dids_data = []
-                for did in constants.DID_IDENTIFIERS:
-                    data = ecu.get_data_from_ecu(did)
-                    dids_data.append((did, data))
-
-                ecu_data = (ecu, dids_data)
-                ecu_data_list.append(ecu_data)
+            ecu_sessions_data = []
+            for session in ecu.sessions:
+                if ServiceID.READ_DATA_BY_IDENTIFIER in session.services:
+                    ecu.switch_to_session(
+                        session.session_id, channel=self.channel)
+                    session_data = []
+                    for did in constants.DID_IDENTIFIERS:
+                        data = ecu.get_data_from_ecu(
+                            did, self.channel, session.session_id)
+                        session_data.append((did, data))
+                    ecu_sessions_data.append(
+                        (session.session_id, session_data))
+            ecu_data_list.append((ecu, ecu_sessions_data))
         return ecu_data_list
 
     def shutdown(self):
