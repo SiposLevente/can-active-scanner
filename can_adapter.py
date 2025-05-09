@@ -58,10 +58,9 @@ class CANAdapter:
                 scanned_ids += 1
 
                 # Print progress
-                if print_results:
-                    progress = (scanned_ids / total_ids) * 100
-                    print(
-                        f"Progress: {progress:.2f}% ({scanned_ids}/{total_ids})")
+                progress = (scanned_ids / total_ids) * 100
+                print(
+                    f"\rProgress: {progress:.2f}% ({scanned_ids}/{total_ids})", end="")
 
                 response_msg = send_and_receive(
                     tp, session_control_data, send_arb_id, timeout=delay)
