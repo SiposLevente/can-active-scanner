@@ -131,8 +131,8 @@ class CANAdapter:
             print(
                 f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
             for session in ecu.sessions:
-                print(f"\tSession ID: 0x{session.session_id:02X}")
                 if ServiceID.READ_DATA_BY_IDENTIFIER in session.services:
+                    print(f"\tSession ID: 0x{session.session_id:02X}")
                     ecu.switch_to_session(
                         session.session_id, channel=self.channel)
                     for did in constants.DID_IDENTIFIERS:
@@ -140,6 +140,7 @@ class CANAdapter:
                             did, self.channel, session.session_id)
                         if data is not None:
                             print(f"\t\tDID {hex(did)}: {data}")
+                    break
             print("-" * 20)
 
     def get_data_from_ecus(self):
