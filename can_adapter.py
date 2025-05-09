@@ -140,7 +140,7 @@ class CANAdapter:
                             did, self.channel, session.session_id)
                         if data is not None:
                             print(f"\t\tDID {hex(did)}: {data}")
-        print("-" * 20)
+            print("-" * 20)
 
     def get_data_from_ecus(self):
         ecu_data_list = []

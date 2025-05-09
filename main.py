@@ -26,8 +26,10 @@ if __name__ == "__main__":
     print("=" * 20)
     adapter.gather_ecu_info()
     adapter.print_ecu_info()
+    print("=" * 20)
 
     adapter.print_data_from_ecus()
+    print("=" * 20)
 
     # type list of (ecu, (did, data))
     data = adapter.get_data_from_ecus()
