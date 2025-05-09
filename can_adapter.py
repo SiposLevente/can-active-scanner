@@ -121,11 +121,9 @@ class CANAdapter:
         for ecu in self.ECUs:
             print(
                 f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
-            print("Sessions:")
             for session in ecu.sessions:
-                print(f"\tSession ID: 0x{session.session_id:02X}")
                 print(
-                    f"\t\tServices: {[hex(service) for service in session.services]}")
+                    f"\tSession ID: 0x{session.session_id:02X}\tServices: {[hex(service) for service in session.services]}")
             print("-" * 20)
 
     def print_data_from_ecus(self):
