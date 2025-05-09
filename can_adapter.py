@@ -154,6 +154,13 @@ class CANAdapter:
                 ecu_data_list.append(ecu_data)
         return ecu_data_list
 
+    def shutdown(self):
+        if self.bus:
+            self.bus.shutdown()
+            print("CAN bus shutdown.")
+        else:
+            print("No CAN bus to shutdown.")
+
     # ==========
     # ==========
 

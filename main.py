@@ -39,3 +39,5 @@ if __name__ == "__main__":
                 print(f"DID: {hex(did)}, Data: {data.hex()}")
                 car_type = get_car_type(data)
                 print(f"Car Type: {car_type}")
+
+    adapter.shutdown()
