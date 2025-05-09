@@ -70,7 +70,7 @@ class CANAdapter:
                 if is_valid_response(response_msg):
                     if print_results:
                         print(
-                            f"Sending Diagnostic Session Control to 0x{send_arb_id:04x}")
+                            f"\rSending Diagnostic Session Control to 0x{send_arb_id:04x}")
                     if verify:
                         # Verification logic
                         verified = False
