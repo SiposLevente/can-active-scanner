@@ -65,6 +65,7 @@ def is_valid_response(message, sent_service_id):
 
 
 def send_and_receive(tp: IsoTp, msg: list, send_arb_id: int, timeout: float = 0.1):
+    requested_service_id = msg[0]
     msg = tp.get_frames_from_message(msg)
     tp.transmit(msg, send_arb_id, None)
     end_time = time.time() + timeout
@@ -72,6 +73,6 @@ def send_and_receive(tp: IsoTp, msg: list, send_arb_id: int, timeout: float = 0.
         msg = tp.bus.recv(0)
         if msg is None:
             continue
-        if is_valid_response(msg, msg[1]):
+        if is_valid_response(msg, requested_service_id):
             return msg
     return None
