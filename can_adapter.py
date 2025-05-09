@@ -7,7 +7,7 @@ import cantools
 
 from ecu import ECU
 from utils import constants
-from utils.can_actions import auto_blacklist, is_valid_response, send_and_receive, sniff_can
+from utils.can_actions import is_valid_response, send_and_receive, sniff_can
 from utils.iso14229_1 import Services
 from utils.iso15765_2 import IsoTp
 
@@ -21,6 +21,7 @@ class CANAdapter:
         self.bitrate = bitrate
         self.dbc_file = dbc_file
         self.dbc = None
+
         self.ECUs: List[ECU] = []
 
         if dbc_file:
@@ -36,24 +37,13 @@ class CANAdapter:
             bitrate=self.bitrate
         )
 
-    def collect_ecus(self, min_id=constants.ARBITRATION_ID_MIN, max_id=constants.ARBITRATION_ID_MAX, blacklist_args=[],
-                     auto_blacklist_duration=0, delay=0.1, verify=True, print_results=True):
+    def collect_ecus(self, min_id=constants.ARBITRATION_ID_MIN, max_id=constants.ARBITRATION_ID_MAX, delay=0.1, verify=True, print_results=True):
         diagnostic_session_control = Services.DiagnosticSessionControl
-        service_id = diagnostic_session_control.service_id
-        sub_function = diagnostic_session_control.DiagnosticSessionType.DEFAULT_SESSION
+        service_id = diagnostic_session_control.service_id  # 0x10
+        sub_function = diagnostic_session_control.DiagnosticSessionType.DEFAULT_SESSION  # 0x01
         session_control_data = [service_id, sub_function]
 
-        # Example IsoTp instance
         with IsoTp(None, None, channel=self.channel) as tp:
-            blacklist = set(blacklist_args)
-            # Perform automatic blacklist scan
-            if auto_blacklist_duration > 0:
-                auto_bl_arb_ids = auto_blacklist(tp.bus,
-                                                 auto_blacklist_duration,
-                                                 is_valid_response,
-                                                 print_results)
-                blacklist |= auto_bl_arb_ids
-
             # Prepare session control frame
             send_arb_id = min_id - 1
             total_ids = max_id - min_id + 1
@@ -77,8 +67,6 @@ class CANAdapter:
                     tp, session_control_data, send_arb_id, timeout=delay)
 
                 if response_msg is None:
-                    continue
-                if response_msg.arbitration_id in blacklist:
                     continue
                 if is_valid_response(response_msg):
                     if print_results:
