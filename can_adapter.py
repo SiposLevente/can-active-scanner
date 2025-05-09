@@ -82,7 +82,7 @@ class CANAdapter:
                         for verify_arb_id in range(send_arb_id, send_arb_id - 10, -1):
                             if print_results:
                                 print(
-                                    f"Resending 0x{verify_arb_id:04x}... ", end="")
+                                    f"Resending 0x{verify_arb_id:04x}...", end="")
                             verification_msg = send_and_receive(
                                 tp, session_control_data, verify_arb_id, timeout=delay + 0.1)
                             if verification_msg and is_valid_response(verification_msg):
