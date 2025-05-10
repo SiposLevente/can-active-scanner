@@ -107,3 +107,22 @@ UDS_SERVICE_NAMES = {
     0x86: "RESPONSE_ON_EVENT",
     0x87: "LINK_CONTROL"
 }
+
+NRC_FOR_AVAILABLE_SERVICE = {
+    # The ECU is currently busy and cannot process the request at this time
+    0x21: "Busy-repeat request",
+    # The requested action cannot be performed due to certain conditions not being met
+    0x22: "Conditions not correct",
+    # The ECU is available, but required components are not responding
+    0x25: "No response from subnet component",
+    # A time-based condition has not yet been met
+    0x37: "Required time delay has not expired",
+    # The maximum number of attempts to invoke the service has been exceeded
+    0x36: "Exceeded number of attempts",
+    # Some internal programming failure preventing the response
+    0x72: "Programming failure",
+    # Sequence error in multi-frame communication preventing response
+    0x73: "Wrong block sequence counter",
+    # ECU has received the request but response is still pending
+    0x78: "Request received - response pending",
+}

@@ -11,14 +11,13 @@ def get_part_type(data):
                     f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
                 print(f"DID: {hex(did)}, Data: {data.hex()}")
                 car_type = get_car_type(data)
-                print(f"Part Type: {car_type}")
+                print(
+                    f"Part Type: {'Unknown' if car_type is None else car_type}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CAN UDS Prober")
     parser.add_argument("--dbc-file", help="Path to the DBC file (optional)")
-    parser.add_argument("--duration", type=int, default=5,
-                        help="Time to listen to CAN traffic")
     parser.add_argument("--channel", default="can0",
                         help="CAN interface channel (default: can0)")
     args = parser.parse_args()
