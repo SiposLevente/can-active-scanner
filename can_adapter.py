@@ -166,7 +166,7 @@ class CANAdapter:
         data = None
         for ecu in self.ECUs:
             needed_session = ecu.find_session_with_service(
-                ServiceID.SECURITY_ACCESS, channel=self.channel)
+                ServiceID.SECURITY_ACCESS)
             if needed_session is None:
                 continue
             data = ecu.request_seed_security_access(

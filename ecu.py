@@ -58,7 +58,9 @@ class ECU:
                     if len(msg.data) > 3:
                         # Since service ID is included in the response, mapping is correct even if response is delayed
                         response_id = msg.data[1]
-                        if is_valid_response(msg, ServiceID.READ_DATA_BY_IDENTIFIER) or response_id in NRC_FOR_AVAILABLE_SERVICE:
+                        print(
+                            f"Service ID: {hex(service_id)}, Response ID: {hex(response_id)}")
+                        if is_valid_response(msg, service_id) or response_id in NRC_FOR_AVAILABLE_SERVICE:
                             request_id = Iso14229_1.get_service_request_id(
                                 response_id)
                             session.add_service(request_id)
