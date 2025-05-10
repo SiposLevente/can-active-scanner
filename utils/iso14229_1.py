@@ -198,15 +198,6 @@ class Services(object):
                 return seed + 1
 
 
-class Constants(object):
-    # NR_SI (Negative Response Service Identifier) is a bit special, since
-    # it is not a service per se.
-    # From ISO-14229-1 specification: "The NR_SI value is co-ordinated with
-    # the SI values. The NR_SI value is not used as a SI value in order to
-    # make A_Data coding and decoding easier."
-    NR_SI = 0x7F
-
-
 class Iso14229_1(object):
     P3_CLIENT = 5
 

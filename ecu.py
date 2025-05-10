@@ -1,5 +1,6 @@
 from utils.can_actions import is_valid_response, send_and_receive
 from utils.common import convert_to_byte_list
+from utils.constants import NEGATIVE_RESPONSE_CODE
 from utils.iso14229_1 import Constants, Iso14229_1, NegativeResponseCodes, ServiceID, Services
 from utils.iso15765_2 import IsoTp
 
@@ -57,15 +58,10 @@ class ECU:
                     if len(msg.data) > 3:
                         # Since service ID is included in the response, mapping is correct even if response is delayed
                         response_id = msg.data[1]
-                        response_service_id = msg.data[2]
-                        status = msg.data[3]
-                        if response_id != Constants.NR_SI:
+                        if response_id != NEGATIVE_RESPONSE_CODE:
                             request_id = Iso14229_1.get_service_request_id(
                                 response_id)
                             session.add_service(request_id)
-                        elif status != NegativeResponseCodes.SERVICE_NOT_SUPPORTED:
-                            # Any other response than "service not supported" counts
-                            session.add_service(response_service_id)
 
             # Switch back to default session
             self.switch_to_session(
