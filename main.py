@@ -15,6 +15,17 @@ def get_part_type(data):
                     f"Part Type: {'Unknown' if car_type is None else car_type}")
 
 
+def get_vin_number(data):
+    for ecu, ecu_data_list in data:
+        for did, data in ecu_data_list:
+            if did == 0xF190:
+                print(
+                    f"ECU ID: 0x{ecu.client_id:04X}, Server ID: 0x{ecu.server_id:04X}")
+                print(f"DID: {hex(did)}, Data: {data.hex()}")
+                vin_number = data.decode('utf-8')
+                print(f"VIN Number: {vin_number}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CAN UDS Prober")
     parser.add_argument("--dbc-file", help="Path to the DBC file (optional)")
@@ -44,7 +55,9 @@ if __name__ == "__main__":
     # type list of List[(ecu, List(did, data))]
     data_by_identifier = adapter.get_data_from_ecus_by_identifer()
     get_part_type(data_by_identifier)
-
+    print("=" * 20)
+    get_vin_number(data_by_identifier)
+    print("=" * 20)
     sec_seed = adapter.get_security_access(sec_level=1)
     print(f"Level 1 Security Seed: {sec_seed}")
 
