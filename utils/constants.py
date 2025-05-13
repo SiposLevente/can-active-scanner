@@ -1,5 +1,5 @@
 
-ARBITRATION_ID_MIN = 0x0
+ARBITRATION_ID_MIN = 0x700
 ARBITRATION_ID_MAX = 0x7FF
 ARBITRATION_ID_MAX_EXTENDED = 0x1FFFFFFF
 
@@ -109,6 +109,7 @@ UDS_SERVICE_NAMES = {
 }
 
 NRC_FOR_AVAILABLE_SERVICE = {
+    0x7f: "Negative response",
     # The ECU is currently busy and cannot process the request at this time
     0x21: "Busy-repeat request",
     # The requested action cannot be performed due to certain conditions not being met

@@ -26,7 +26,7 @@ class ECU:
         service_id = diagnostic_session_control.service_id
 
         with IsoTp(None, None, channel=channel) as tp:
-            for session in range(0x01, 0x0F):  # Check sessions from 0x02 to 0x0F
+            for session in range(0x01, 0x05):  # Check sessions from 0x01 to 0x0F
                 resp = self.switch_to_session(session, tp)
 
                 # TODO: Check invalid response codes
@@ -43,10 +43,12 @@ class ECU:
             tp.set_filter_single_arbitration_id(self.server_id)
 
             for session in self.sessions:
+                # print(f"Discovering services for session {session.session_id}...")
                 # Iterate through all sessions
                 self.switch_to_session(session.session_id, tp)
 
                 for service_id in range(0, 0xff):
+                    # print(f"Requesting service {service_id}...")
                     tp.send_request([service_id])
 
                     # Get response
@@ -58,6 +60,7 @@ class ECU:
                     if len(msg.data) > 3:
                         # Since service ID is included in the response, mapping is correct even if response is delayed
                         response_id = msg.data[1]
+                        # print(f"Response ID: {response_id}")
                         if is_valid_response(msg, service_id) or response_id in NRC_FOR_AVAILABLE_SERVICE:
                             request_id = Iso14229_1.get_service_request_id(
                                 response_id)

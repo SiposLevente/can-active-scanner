@@ -46,7 +46,6 @@ class CANAdapter:
         with IsoTp(None, None, channel=self.channel) as tp:
             # Prepare session control frame
             send_arb_id = min_id - 1
-            total_ids = max_id - min_id + 1
             scanned_ids = 0
 
             if print_results:
@@ -58,9 +57,9 @@ class CANAdapter:
                 scanned_ids += 1
 
                 # Print progress
-                progress = (scanned_ids / total_ids) * 100
+                progress = (scanned_ids / (max_id-min_id)) * 100
                 print(
-                    f"\rProgress: {progress:.2f}% ({scanned_ids}/{total_ids})", end="")
+                    f"\rProgress: {progress:.2f}% ({scanned_ids}/{(max_id-min_id)})", end="")
 
                 response_msg = send_and_receive(
                     tp, session_control_data, send_arb_id, timeout=delay)
